@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Field Service Portal — CivicRoute AI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Serif:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Noto Sans',Arial,sans-serif;background:#F0F4FA;color:#1A1A2E;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
+    .tricolor{height:4px;background:linear-gradient(to right,#FF6600 33.33%,#FFF 33.33% 66.66%,#138808 66.66%)}
+    .gov-header{background:#003366;border-bottom:3px solid #FF6600}
+    .card{background:#FFF;border:1px solid #D0D7E2;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+    .card-hdr{background:#F0F4FA;border-bottom:1px solid #D0D7E2;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#003366;display:flex;align-items:center;gap:6px}
+    .complaint-row{padding:10px 14px;border-bottom:1px solid #EEF0F5;cursor:pointer;transition:background .12s}
+    .complaint-row:hover{background:#F5F8FF}
+    .complaint-row.selected{background:#EEF2FF;border-left:3px solid #003366}
+    .badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:2px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+    .badge-progress{background:#E8F0FE;color:#0047AB;border:1px solid #AABFEE}
+    .btn-saffron{background:#FF6600;color:#FFF;border:none;border-radius:3px;font-weight:700;font-size:12px;padding:7px 16px;cursor:pointer;transition:background .15s;display:inline-flex;align-items:center;gap:6px;font-family:'Noto Sans',sans-serif}
+    .btn-saffron:hover{background:#cc5200}
+    .btn-outline{background:transparent;color:#003366;border:1.5px solid #003366;border-radius:3px;font-weight:600;font-size:12px;padding:6px 14px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;font-family:'Noto Sans',sans-serif}
+    .btn-outline:hover{background:#003366;color:#FFF}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes pd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.2)}}
+    .pulse{animation:pd 2s infinite ease-in-out}
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-track{background:#F0F4FA}
+    ::-webkit-scrollbar-thumb{background:#B0BAC9;border-radius:2px}
+    #loading-screen{position:fixed;inset:0;background:#003366;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px}
+    /* ── Responsive layout ── */
+    .main-layout{display:flex;gap:16px;align-items:flex-start}
+    .queue-panel{width:340px;flex-shrink:0;border-radius:3px;overflow:hidden;border:1px solid #D0D7E2;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+    .detail-panel{flex:1;min-width:0}
+    .task-scroll{overflow-y:auto;height:calc(100vh - 220px)}
+    @media(max-width:768px){
+      .main-layout{flex-direction:column;gap:12px}
+      .queue-panel{width:100%}
+      .task-scroll{height:320px}
+      .detail-panel{width:100%}
+      .gov-header .header-inner{flex-wrap:wrap;gap:8px;padding:10px 14px}
+      .gov-header .header-right{flex-wrap:wrap;gap:6px}
+      .system-live-badge{display:none!important}
+      .main-wrap{padding:12px}
+      h2.page-title{font-size:13px}
+    }
+    @media(max-width:480px){
+      .gov-header .header-brand h1{font-size:14px}
+      .gov-header .portal-badge{display:none}
+      .queue-panel{border-radius:0}
+    }
+  </style>
+</head>
+<body style="opacity:0;transition:opacity .2s">
+
+<div id="loading-screen">
+  <div style="width:52px;height:52px;border:4px solid rgba(255,255,255,.2);border-top-color:#FF6600;border-radius:50%;animation:spin 1s linear infinite"></div>
+  <p style="color:#fff;font-size:13px;font-weight:600;letter-spacing:.05em">Verifying credentials...</p>
+</div>
+
+<div class="tricolor"></div>
+
+<header class="gov-header">
+  <div style="max-width:1400px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap" class="header-inner">
+    <div style="display:flex;align-items:center;gap:12px">
+      <svg viewBox="0 0 100 100" style="width:42px;height:42px;flex-shrink:0" fill="none">
+        <circle cx="50" cy="50" r="46" stroke="#FF6600" stroke-width="3" fill="none"/>
+        <g stroke="#FF6600" stroke-width="1.5">
+          <line x1="50" y1="8" x2="50" y2="92"/><line x1="8" y1="50" x2="92" y2="50"/>
+          <line x1="19.4" y1="19.4" x2="80.6" y2="80.6"/><line x1="80.6" y1="19.4" x2="19.4" y2="80.6"/>
+          <line x1="50" y1="8" x2="50" y2="92" transform="rotate(22.5 50 50)"/><line x1="8" y1="50" x2="92" y2="50" transform="rotate(22.5 50 50)"/>
+          <line x1="19.4" y1="19.4" x2="80.6" y2="80.6" transform="rotate(22.5 50 50)"/><line x1="80.6" y1="19.4" x2="19.4" y2="80.6" transform="rotate(22.5 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="92" transform="rotate(45 50 50)"/><line x1="8" y1="50" x2="92" y2="50" transform="rotate(45 50 50)"/>
+          <line x1="19.4" y1="19.4" x2="80.6" y2="80.6" transform="rotate(45 50 50)"/><line x1="80.6" y1="19.4" x2="19.4" y2="80.6" transform="rotate(45 50 50)"/>
+        </g>
+        <circle cx="50" cy="50" r="8" fill="#FF6600"/><circle cx="50" cy="50" r="4" fill="#FFF"/>
+      </svg>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <h1 style="font-family:'Noto Serif',serif;font-size:17px;font-weight:700;color:#fff">CivicRoute AI</h1>
+          <span class="portal-badge" style="padding:2px 8px;font-size:9px;font-weight:800;letter-spacing:.1em;color:#fff;border:1px solid #FF6600;border-radius:2px;background:rgba(255,102,0,.25);text-transform:uppercase">Field Service Portal</span>
+        </div>
+        <p style="color:rgba(179,210,255,.75);font-size:11px;margin-top:3px">Ministry of Urban Development</p>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap">
+      <div class="system-live-badge" style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:3px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block" class="pulse"></span>
+        <span style="font-size:11px;color:#fff;font-weight:500">System Live - Port 3002</span>
+      </div>
+      <div id="service-chip" style="display:none;align-items:center;gap:8px;padding:6px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:3px">
+        <div id="service-avatar" style="width:26px;height:26px;border-radius:50%;background:#003366;border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;overflow:hidden;flex-shrink:0">
+          <i class="fa-solid fa-hard-hat" style="font-size:10px"></i>
+        </div>
+        <div>
+          <p id="service-name" style="color:#fff;font-size:11px;font-weight:600;line-height:1.2">Worker</p>
+          <p id="service-role-lbl" style="color:rgba(179,210,255,.7);font-size:9px;text-transform:uppercase;letter-spacing:.05em">service</p>
+        </div>
+      </div>
+      <button id="btn-logout" onclick="serviceLogout()" class="btn-outline" style="display:none;color:#fff;border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.08)">
+        <i class="fa-solid fa-right-from-bracket" style="font-size:10px"></i> Sign Out
+      </button>
+    </div>
+  </div>
+</header>
+
+<div style="max-width:1400px;margin:0 auto;padding:20px;flex:1;width:100%" class="main-wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <h2 class="page-title" style="font-size:15px;color:#003366;"><i class="fa-solid fa-list-check" style="margin-right:6px"></i> Active Tasks</h2>
+    <button onclick="loadActiveTasks()" class="btn-outline"><i class="fa-solid fa-rotate-right" style="font-size:10px"></i> Refresh</button>
+  </div>
+
+  <div class="main-layout">
+    <div class="queue-panel">
+      <div class="card-hdr">
+        <i class="fa-solid fa-inbox"></i> In Progress Queue
+      </div>
+      <div id="task-list" class="task-scroll">
+        <div style="padding:40px 16px;text-align:center;color:#9AA5B4;font-size:12px">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size:22px;margin-bottom:10px;display:block"></i>Loading tasks...
+        </div>
+      </div>
+    </div>
+    
+    <div class="detail-panel">
+      <div id="task-detail" class="card">
+        <div class="card-hdr"><i class="fa-solid fa-file-lines"></i> Task Detail</div>
+        <div style="padding:60px 32px;text-align:center;color:#9AA5B4">
+          <i class="fa-solid fa-hand-pointer" style="font-size:36px;display:block;margin-bottom:12px;color:#D0D7E2"></i>
+          <p style="font-size:13px;font-weight:600;color:#4A5568">Select a task from the queue</p>
+          <p style="font-size:11px;margin-top:4px">Click any assigned grievance to view details and mark as resolved</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp }                            from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, onAuthStateChanged, signOut }     from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getFirestore, collection, query, where,
+         onSnapshot, doc, getDoc, updateDoc,
+         serverTimestamp }                          from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const cfg = {
+  apiKey:'AIzaSyDsZb44EyDlTnlNhj42DGySy26g3p0M00Q',
+  authDomain:'cuddlecart-cbf86.firebaseapp.com',
+  projectId:'cuddlecart-cbf86',
+  storageBucket:'cuddlecart-cbf86.firebasestorage.app',
+  messagingSenderId:'364196376658',
+  appId:'1:364196376658:web:292007ccc2b01ad21c6f8b'
+};
+
+const app  = initializeApp(cfg);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+let allTasks = [];
+let unsubscribe = null;
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location.href = './service-login.html'; return; }
+  
+  const snap = await getDoc(doc(db, 'users', user.uid));
+  const profile = snap.exists() ? snap.data() : {};
+  if (profile.role !== 'service' && profile.role !== 'officer') {
+    alert("Access Denied. You do not have service personnel privileges.");
+    signOut(auth);
+    return;
+  }
+
+  document.body.style.opacity = '1';
+  document.getElementById('service-chip').style.display = 'flex';
+  document.getElementById('btn-logout').style.display = 'inline-flex';
+  const name = user.displayName || user.email?.split('@')[0] || 'Worker';
+  document.getElementById('service-name').textContent = name;
+  const av = document.getElementById('service-avatar');
+  if (user.photoURL) av.innerHTML = '<img src="'+user.photoURL+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+  else av.textContent = name.slice(0,2).toUpperCase();
+
+  document.getElementById('loading-screen').style.display = 'none';
+  document.body.style.opacity = '1';
+  loadActiveTasks();
+});
+
+window.loadActiveTasks = function() {
+  const list = document.getElementById('task-list');
+  list.innerHTML = '<div style="padding:40px 16px;text-align:center;color:#9AA5B4;font-size:12px"><i class="fa-solid fa-spinner fa-spin" style="font-size:22px;margin-bottom:10px;display:block"></i>Fetching tasks...</div>';
+  
+  if (unsubscribe) unsubscribe();
+  
+  const q = query(collection(db, 'complaints'), where('status', '==', 'in-progress'));
+  
+  unsubscribe = onSnapshot(q, (snapshot) => {
+    allTasks = [];
+    snapshot.forEach(d => allTasks.push({id:d.id, ...d.data()}));
+    // Sort client-side descending by createdAt
+    allTasks.sort((a, b) => {
+      const ta = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt||0);
+      const tb = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt||0);
+      return tb - ta;
+    });
+    renderList();
+  }, (err) => {
+    console.error("Firestore Listen Error:", err);
+    list.innerHTML = '<div style="padding:40px 16px;text-align:center;color:#CC0000;font-size:12px"><i class="fa-solid fa-triangle-exclamation" style="font-size:22px;margin-bottom:10px;display:block"></i>Failed to load tasks. Check Firebase rules/indices.</div>';
+  });
+};
+
+function renderList() {
+  const list = document.getElementById('task-list');
+  if (!allTasks.length) {
+    list.innerHTML = '<div style="padding:40px 16px;text-align:center;color:#9AA5B4;font-size:12px"><i class="fa-solid fa-mug-hot" style="font-size:32px;display:block;margin-bottom:12px;color:#D0D7E2"></i>No active tasks right now.<br>You are all caught up!</div>';
+    document.getElementById('task-detail').innerHTML = '<div class="card-hdr"><i class="fa-solid fa-file-lines"></i> Task Detail</div><div style="padding:60px 32px;text-align:center;color:#9AA5B4"><i class="fa-solid fa-check-double" style="font-size:36px;display:block;margin-bottom:12px;color:#D0D7E2"></i><p style="font-size:13px;font-weight:600;color:#4A5568">Queue is empty</p></div>';
+    return;
+  }
+  
+  const priorityColor = {critical:'#CC0000',high:'#FF6600',normal:'#0047AB',low:'#138808'};
+  
+  list.innerHTML = allTasks.map((c, i) => {
+    const ts = c.createdAt?.toDate ? c.createdAt.toDate() : (c.createdAt ? new Date(c.createdAt) : null);
+    const dt = ts ? ts.toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '--';
+    const pc = priorityColor[c.priority] || '#4A5568';
+    const id = c.ticketId || c.id?.slice(0,8).toUpperCase();
+    
+    return `<div class="complaint-row" onclick="viewTask(${i}, this)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:10px;font-weight:700;color:#003366">${id}</span>
+        <span style="font-size:9px;font-weight:800;color:${pc};text-transform:uppercase">${c.priority||'normal'}</span>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:#1A1A2E;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.title||c.subject||'Untitled'}</div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:#9AA5B4">
+        <span>${c.department||'General'} &middot; ${c.ward||'N/A'}</span>
+        <span>${dt}</span>
+      </div>
+    </div>`;
+  }).join('');
+  
+  // loading screen already hidden
+}
+
+let activeTaskIndex = -1;
+
+window.viewTask = function(index, el) {
+  document.querySelectorAll('.complaint-row').forEach(r => r.classList.remove('selected'));
+  if(el) el.classList.add('selected');
+  activeTaskIndex = index;
+  const c = allTasks[index];
+  
+  const ts = c.createdAt?.toDate ? c.createdAt.toDate() : (c.createdAt ? new Date(c.createdAt) : null);
+  const dt = ts?ts.toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'--';
+  const id = c.ticketId||c.id?.slice(0,8).toUpperCase();
+  const field = (l,v) => '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#4A5568;margin-bottom:3px">'+l+'</p><p style="font-size:13px;font-weight:600;color:#1A1A2E">'+(v||'--')+'</p></div>';
+  
+  document.getElementById('task-detail').innerHTML =
+    '<div class="card-hdr" style="justify-content:space-between"><span><i class="fa-solid fa-file-lines"></i> Task #'+id+'</span><span class="badge badge-progress"><i class="fa-solid fa-spinner fa-spin" style="font-size:9px"></i> IN PROGRESS</span></div>'
+    +'<div style="padding:20px">'
+    +'<h2 style="font-size:16px;font-weight:700;color:#003366;margin-bottom:14px">'+(c.title||c.subject||'Untitled Task')+'</h2>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:18px">'
+    +field('Reported By',c.submittedBy||c.citizenName)
+    +field('Phone',c.phone)+field('Ward / Zone',c.ward)
+    +field('Department',c.department)+field('Priority',c.priority)+field('Date Assigned',dt)
+    +'</div>'
+    +(c.description?'<div style="margin-bottom:16px"><p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#4A5568;margin-bottom:6px">Problem Description</p><div style="background:#F5F7FA;border:1px solid #D0D7E2;border-radius:3px;padding:12px;font-size:12px;line-height:1.7;color:#1A1A2E">'+c.description+'</div></div>':'')
+    +(c.aiSummary?'<div style="margin-bottom:16px;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:3px;padding:12px"><p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#4338CA;margin-bottom:6px"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:4px"></i>AI Assessment</p><p style="font-size:12px;line-height:1.7;color:#1A1A2E">'+c.aiSummary+'</p></div>':'')
+    +`<div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:14px;border-top:1px solid #EEF0F5">
+      <button class="btn-saffron" id="btn-resolve" onclick="markTaskResolved()">
+        <i class="fa-solid fa-check-double" style="font-size:11px"></i> Mark Task as Resolved
+      </button>
+    </div>
+    <div id="resolve-confirm" style="display:none;margin-top:12px;padding:12px 16px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;font-size:12px;color:#92400E">
+      <p style="font-weight:700;margin-bottom:8px"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>Confirm Resolution</p>
+      <p style="margin-bottom:10px">This will mark the task as <strong>Resolved</strong> and remove it from the active queue. Are you sure?</p>
+      <div style="display:flex;gap:8px">
+        <button onclick="confirmResolve()" style="padding:6px 16px;background:#138808;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer">Yes, Resolve</button>
+        <button onclick="document.getElementById('resolve-confirm').style.display='none';document.getElementById('btn-resolve').style.display='';" style="padding:6px 16px;background:#EEF0F5;color:#4A5568;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer">Cancel</button>
+      </div>
+    </div></div></div>`;
+};
+
+window.markTaskResolved = function() {
+  const resolvePanel = document.getElementById('resolve-confirm');
+  const resolveBtn   = document.getElementById('btn-resolve');
+  if (resolvePanel) {
+    resolvePanel.style.display = 'block';
+    resolveBtn.style.display   = 'none';
+  }
+};
+
+window.confirmResolve = async function() {
+  if (activeTaskIndex < 0 || activeTaskIndex >= allTasks.length) {
+    showToast('No task selected.', '#CC0000'); return;
+  }
+  const task   = allTasks[activeTaskIndex];
+  const fsDocId = task.id;   // Firestore document ID (set during onSnapshot)
+  const ticketId = task.ticketId || fsDocId;
+
+  const resolveBtn = document.getElementById('btn-resolve');
+  if (resolveBtn) resolveBtn.disabled = true;
+
+  try {
+    await updateDoc(doc(db, 'complaints', fsDocId), {
+      status:     'resolved',
+      resolvedAt: serverTimestamp(),
+      resolvedBy: auth.currentUser?.email || 'service-agent',
+    });
+    showToast(`✅ Ticket #${ticketId} marked as Resolved!`, '#138808');
+    activeTaskIndex = -1;
+    document.getElementById('task-detail').innerHTML =
+      '<div class="card-hdr"><i class="fa-solid fa-file-lines"></i> Task Detail</div>'
+      +'<div style="padding:60px 32px;text-align:center;color:#9AA5B4">'
+      +'<i class="fa-solid fa-circle-check" style="font-size:40px;display:block;margin-bottom:12px;color:#138808"></i>'
+      +'<p style="font-size:14px;font-weight:700;color:#138808">Task Resolved!</p>'
+      +'<p style="font-size:12px;margin-top:4px">Select another task from the queue.</p></div>';
+  } catch(e) {
+    showToast('Failed to resolve: ' + e.message, '#CC0000');
+    console.error('Resolve error:', e);
+    if (resolveBtn) resolveBtn.disabled = false;
+    const panel = document.getElementById('resolve-confirm');
+    if (panel) panel.style.display = 'none';
+    if (resolveBtn) resolveBtn.style.display = '';
+  }
+};
+
+window.serviceLogout = async function() {
+  await signOut(auth);
+  window.location.href = './service-login.html';
+};
+
+window.showToast = function(msg, color) {
+  color = color||'#003366';
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:10px 18px;background:'+color+';color:#fff;border-radius:3px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);transition:opacity .2s;font-family:Noto Sans,sans-serif';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.remove()},200)},3000);
+};
+</script>
+</body>
+</html>

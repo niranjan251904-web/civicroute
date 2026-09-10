@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Control Room - CivicRoute AI | Government of India</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Serif:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Noto Sans',Arial,sans-serif;background:#F0F4FA;color:#1A1A2E;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
+    .tricolor{height:5px;background:linear-gradient(to right,#FF6600 33.33%,#FFF 33.33% 66.66%,#138808 66.66%)}
+    .gov-header{background:#003366;border-bottom:3px solid #FF6600}
+    .card{background:#FFF;border:1px solid #D0D7E2;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+    .card-hdr{background:#F0F4FA;border-bottom:1px solid #D0D7E2;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#003366;display:flex;align-items:center;gap:6px}
+    .tab-nav{border-bottom:2px solid #003366;background:#FFF;display:flex;overflow-x:auto}
+    .tab-btn{padding:10px 18px;font-size:12px;font-weight:500;color:#4A5568;border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap;font-family:'Noto Sans',sans-serif}
+    .tab-btn:hover{color:#003366;background:#F5F7FA}
+    .tab-btn.active{color:#003366;font-weight:700;border-bottom-color:#FF6600;background:#EEF2FF}
+    .complaint-row{padding:10px 14px;border-bottom:1px solid #EEF0F5;cursor:pointer;transition:background .12s}
+    .complaint-row:hover{background:#F5F8FF}
+    .complaint-row.selected{background:#EEF2FF;border-left:3px solid #003366}
+    .badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:2px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+    .badge-open{background:#FFF0E6;color:#CC4400;border:1px solid #FFCCAA}
+    .badge-progress{background:#E8F0FE;color:#0047AB;border:1px solid #AABFEE}
+    .badge-resolved{background:#E8F5E9;color:#138808;border:1px solid #A8D5AA}
+    .badge-critical{background:#FFF0F0;color:#CC0000;border:1px solid #FFAAAA}
+    .btn-navy{background:#003366;color:#FFF;border:none;border-radius:3px;font-weight:600;font-size:12px;padding:7px 14px;cursor:pointer;transition:background .15s;display:inline-flex;align-items:center;gap:6px;font-family:'Noto Sans',sans-serif}
+    .btn-navy:hover{background:#00264d}
+    .btn-saffron{background:#FF6600;color:#FFF;border:none;border-radius:3px;font-weight:700;font-size:12px;padding:7px 16px;cursor:pointer;transition:background .15s;display:inline-flex;align-items:center;gap:6px;font-family:'Noto Sans',sans-serif}
+    .btn-saffron:hover{background:#cc5200}
+    .btn-outline{background:transparent;color:#003366;border:1.5px solid #003366;border-radius:3px;font-weight:600;font-size:12px;padding:6px 14px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;font-family:'Noto Sans',sans-serif}
+    .btn-outline:hover{background:#003366;color:#FFF}
+    .stat-box{flex:1;padding:14px 16px;border-right:1px solid #D0D7E2;min-width:100px}
+    .stat-box:last-child{border-right:none}
+    .filter-btn{padding:3px 10px;font-size:10px;font-weight:600;border-radius:2px;border:1px solid #D0D7E2;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .12s}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes pd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.2)}}
+    .pulse{animation:pd 2s infinite ease-in-out}
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-track{background:#F0F4FA}
+    ::-webkit-scrollbar-thumb{background:#B0BAC9;border-radius:2px}
+    #loading-screen{position:fixed;inset:0;background:#003366;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px}
+    th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#003366;border-bottom:2px solid #D0D7E2;background:#F0F4FA}
+    td{padding:9px 12px;border-bottom:1px solid #EEF0F5;color:#1A1A2E;vertical-align:middle;font-size:12px}
+    /* ── Responsive ── */
+    .stats-bar-inner{display:flex;align-items:stretch;flex-wrap:wrap}
+    .admin-layout{display:flex;gap:16px;align-items:flex-start}
+    .queue-col{width:300px;flex-shrink:0;border-radius:3px;overflow:hidden;border:1px solid #D0D7E2;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+    .detail-col{flex:1;min-width:0}
+    .complaint-scroll{overflow-y:auto;max-height:calc(100vh - 380px)}
+    .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .admin-main{max-width:1400px;margin:0 auto;padding:20px;flex:1}
+    @media(max-width:900px){
+      .admin-layout{flex-direction:column}
+      .queue-col{width:100%}
+      .complaint-scroll{max-height:280px}
+      .detail-col{width:100%}
+    }
+    @media(max-width:768px){
+      .stat-box{flex:0 0 50%;border-right:none;border-bottom:1px solid #D0D7E2;padding:10px 14px}
+      .stat-box:nth-child(odd){border-right:1px solid #D0D7E2}
+      .stat-box p:last-child{font-size:18px!important}
+      .stats-bar-inner .refresh-wrap{width:100%;padding:10px 14px;border-top:1px solid #D0D7E2}
+      .admin-main{padding:12px}
+      .system-live-badge{display:none!important}
+      .tab-nav{padding:0 12px!important}
+      td,th{padding:7px 8px;font-size:11px}
+    }
+    @media(max-width:480px){
+      .stat-box{flex:0 0 33.33%;padding:8px 10px}
+      .stat-box:nth-child(odd){border-right:none}
+      .stat-box:nth-child(3n+1){border-right:1px solid #D0D7E2}
+      .gov-header .portal-badge,.gov-header .restricted-badge{display:none}
+      .gov-header h1{font-size:14px!important}
+      .header-subtitle{display:none}
+    }
+  </style>
+</head>
+<body style="opacity:0;transition:opacity .2s">
+
+<div id="loading-screen">
+  <div style="width:52px;height:52px;border:4px solid rgba(255,255,255,.2);border-top-color:#FF6600;border-radius:50%;animation:spin 1s linear infinite"></div>
+  <p style="color:#fff;font-size:13px;font-weight:600;letter-spacing:.05em">Verifying credentials...</p>
+  <p style="color:rgba(255,255,255,.5);font-size:11px">CivicRoute AI - Restricted Admin Portal</p>
+</div>
+
+<div class="tricolor"></div>
+
+<header class="gov-header">
+  <div style="max-width:1400px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:12px">
+      <svg viewBox="0 0 100 100" style="width:42px;height:42px;flex-shrink:0" fill="none">
+        <circle cx="50" cy="50" r="46" stroke="#FF6600" stroke-width="3" fill="none"/>
+        <g stroke="#FF6600" stroke-width="1.5">
+          <line x1="50" y1="8" x2="50" y2="92"/><line x1="8" y1="50" x2="92" y2="50"/>
+          <line x1="19.4" y1="19.4" x2="80.6" y2="80.6"/><line x1="80.6" y1="19.4" x2="19.4" y2="80.6"/>
+          <line x1="50" y1="8" x2="50" y2="92" transform="rotate(22.5 50 50)"/><line x1="8" y1="50" x2="92" y2="50" transform="rotate(22.5 50 50)"/>
+          <line x1="19.4" y1="19.4" x2="80.6" y2="80.6" transform="rotate(22.5 50 50)"/><line x1="80.6" y1="19.4" x2="19.4" y2="80.6" transform="rotate(22.5 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="92" transform="rotate(45 50 50)"/><line x1="8" y1="50" x2="92" y2="50" transform="rotate(45 50 50)"/>
+          <line x1="19.4" y1="19.4" x2="80.6" y2="80.6" transform="rotate(45 50 50)"/><line x1="80.6" y1="19.4" x2="19.4" y2="80.6" transform="rotate(45 50 50)"/>
+        </g>
+        <circle cx="50" cy="50" r="8" fill="#FF6600"/><circle cx="50" cy="50" r="4" fill="#FFF"/>
+      </svg>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <h1 style="font-family:'Noto Serif',serif;font-size:17px;font-weight:700;color:#fff">CivicRoute AI</h1>
+          <span class="portal-badge" style="padding:2px 8px;font-size:9px;font-weight:800;letter-spacing:.1em;color:#fff;border:1px solid #FF6600;border-radius:2px;background:rgba(255,102,0,.25);text-transform:uppercase">Admin Control Room</span>
+          <span class="restricted-badge" style="padding:2px 7px;font-size:9px;font-weight:700;color:#fbbf24;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);border-radius:2px;text-transform:uppercase">Restricted</span>
+        </div>
+        <p class="header-subtitle" style="color:rgba(179,210,255,.75);font-size:11px;margin-top:3px">Ministry of Urban Development | National Informatics Centre</p>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap">
+      <div class="system-live-badge" style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:3px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block" class="pulse"></span>
+        <span style="font-size:11px;color:#fff;font-weight:500">System Live - Port 3001</span>
+      </div>
+      <div id="admin-chip" style="display:none;align-items:center;gap:8px;padding:6px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:3px">
+        <div id="admin-avatar" style="width:26px;height:26px;border-radius:50%;background:#FF6600;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;overflow:hidden;flex-shrink:0">
+          <i class="fa-solid fa-user" style="font-size:10px"></i>
+        </div>
+        <div>
+          <p id="admin-name" style="color:#fff;font-size:11px;font-weight:600;line-height:1.2">Officer</p>
+          <p id="admin-role-lbl" style="color:rgba(179,210,255,.7);font-size:9px;text-transform:uppercase;letter-spacing:.05em">officer</p>
+        </div>
+      </div>
+      <a href="./index.html" class="btn-outline" style="color:#fff;border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.08)">
+        <i class="fa-solid fa-arrow-left" style="font-size:10px"></i> Citizen Portal
+      </a>
+      <button id="btn-logout" onclick="adminLogout()" class="btn-outline" style="display:none;color:#fff;border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.08)">
+        <i class="fa-solid fa-right-from-bracket" style="font-size:10px"></i> Sign Out
+      </button>
+    </div>
+  </div>
+</header>
+
+<div style="background:#fff;border-bottom:1px solid #D0D7E2;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+  <div style="max-width:1400px;margin:0 auto;padding:0 20px" class="stats-bar-inner">
+    <div class="stat-box"><p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#4A5568;margin-bottom:4px">Total Complaints</p><p id="st-total" style="font-size:22px;font-weight:800;color:#003366">0</p></div>
+    <div class="stat-box"><p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#CC4400;margin-bottom:4px">Open / Pending</p><p id="st-open" style="font-size:22px;font-weight:800;color:#CC4400">0</p></div>
+    <div class="stat-box"><p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#0047AB;margin-bottom:4px">In Progress</p><p id="st-progress" style="font-size:22px;font-weight:800;color:#0047AB">0</p></div>
+    <div class="stat-box"><p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#138808;margin-bottom:4px">Resolved</p><p id="st-resolved" style="font-size:22px;font-weight:800;color:#138808">0</p></div>
+    <div class="stat-box"><p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#CC0000;margin-bottom:4px">Critical</p><p id="st-critical" style="font-size:22px;font-weight:800;color:#CC0000">0</p></div>
+    <div class="refresh-wrap" style="padding:10px 16px;display:flex;align-items:center;gap:8px;margin-left:auto">
+      <button onclick="refreshComplaints()" class="btn-outline"><i class="fa-solid fa-rotate-right" style="font-size:10px"></i> Refresh</button>
+    </div>
+  </div>
+</div>
+
+<div class="tab-nav" style="max-width:1400px;margin:0 auto;padding:0 20px">
+  <button class="tab-btn active" id="atab-complaints" onclick="switchTab('complaints')">
+    <i class="fa-solid fa-list-check" style="margin-right:5px"></i>Complaints Queue
+    <span id="tab-badge" style="margin-left:6px;padding:1px 7px;background:#FF6600;color:#fff;border-radius:2px;font-size:10px;font-weight:700">0</span>
+  </button>
+  <button class="tab-btn" id="atab-users" onclick="switchTab('users')">
+    <i class="fa-solid fa-users" style="margin-right:5px"></i>Registered Users
+  </button>
+</div>
+
+<div class="admin-main">
+
+  <div id="view-complaints" class="admin-layout">
+    <div class="queue-col">
+      <div class="card-hdr">
+        <i class="fa-solid fa-inbox"></i> Grievance Queue
+        <button onclick="refreshComplaints()" style="margin-left:auto;background:none;border:none;color:#003366;cursor:pointer;font-size:11px"><i class="fa-solid fa-rotate-right"></i></button>
+      </div>
+      <div style="padding:8px;border-bottom:1px solid #EEF0F5;display:flex;gap:5px;flex-wrap:wrap">
+        <button onclick="filterBy('all')"      id="f-all"      class="filter-btn" style="background:#003366;color:#fff;border-color:#003366">All</button>
+        <button onclick="filterBy('open')"     id="f-open"     class="filter-btn" style="background:#fff;color:#4A5568">Open</button>
+        <button onclick="filterBy('progress')" id="f-progress" class="filter-btn" style="background:#fff;color:#4A5568">In Progress</button>
+        <button onclick="filterBy('resolved')" id="f-resolved" class="filter-btn" style="background:#fff;color:#4A5568">Resolved</button>
+      </div>
+      <div id="complaint-list" class="complaint-scroll">
+        <div style="padding:40px 16px;text-align:center;color:#9AA5B4;font-size:12px">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size:22px;margin-bottom:10px;display:block"></i>Loading complaints...
+        </div>
+      </div>
+    </div>
+    <div class="detail-col">
+      <div id="complaint-detail" class="card">
+        <div class="card-hdr"><i class="fa-solid fa-file-lines"></i> Complaint Detail</div>
+        <div style="padding:60px 32px;text-align:center;color:#9AA5B4">
+          <i class="fa-solid fa-hand-pointer" style="font-size:36px;display:block;margin-bottom:12px;color:#D0D7E2"></i>
+          <p style="font-size:13px;font-weight:600;color:#4A5568">Select a complaint from the queue</p>
+          <p style="font-size:11px;margin-top:4px">Click any grievance to view details and update its status</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div id="view-users" style="display:none">
+    <div class="card">
+      <div class="card-hdr" style="justify-content:space-between">
+        <span><i class="fa-solid fa-users"></i> Registered Citizens and Officers</span>
+        <span id="user-count" style="font-size:10px;font-weight:400;color:#718096;text-transform:none;letter-spacing:0">Loading...</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Ward</th><th>Logins</th><th>Last Login</th><th>Provider</th></tr></thead>
+          <tbody id="users-tbody">
+            <tr><td colspan="8" style="padding:40px;text-align:center;color:#9AA5B4"><i class="fa-solid fa-spinner fa-spin" style="font-size:18px;display:block;margin-bottom:8px"></i>Loading users...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer style="background:#003366;border-top:3px solid #FF6600;margin-top:auto">
+  <div style="max-width:1400px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <p style="color:rgba(255,255,255,.6);font-size:11px">CivicRoute AI Admin Control Room | Ministry of Urban Development | NIC | Government of India</p>
+    <p style="color:rgba(255,255,255,.4);font-size:11px">2026 GoI - Port 3001 Restricted Access</p>
+  </div>
+</footer>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getFirestore, collection, doc, getDocs, getDoc, query, orderBy, updateDoc,
+         addDoc, serverTimestamp, Timestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const cfg = { apiKey:'AIzaSyDsZb44EyDlTnlNhj42DGySy26g3p0M00Q', authDomain:'cuddlecart-cbf86.firebaseapp.com', projectId:'cuddlecart-cbf86', storageBucket:'cuddlecart-cbf86.firebasestorage.app', messagingSenderId:'364196376658', appId:'1:364196376658:web:292007ccc2b01ad21c6f8b' };
+const app = initializeApp(cfg);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+onAuthStateChanged(auth, async user => {
+  const loadEl = document.getElementById('loading-screen');
+  if (!user) {
+    /* Not logged in — redirect to admin login page */
+    loadEl.innerHTML = '<div style="text-align:center;color:#fff"><i class="fa-solid fa-lock" style="font-size:40px;color:#FF6600;margin-bottom:16px;display:block"></i><p style="font-size:14px;font-weight:600;color:#fff;margin-bottom:6px">Redirecting to Officer Sign In...</p></div>';
+    setTimeout(() => { window.location.href = './admin-login.html'; }, 800);
+    return;
+  }
+  let profile = {};
+  try { const s = await getDoc(doc(db,'users',user.uid)); if(s.exists()) profile = s.data(); } catch(e){}
+  /* All authenticated users may access admin -- restrict via Firestore rules in production */
+  loadEl.style.display = 'none';
+  document.body.style.opacity = '1';
+  const chip = document.getElementById('admin-chip');
+  const av = document.getElementById('admin-avatar');
+  chip.style.display = 'flex';
+  document.getElementById('btn-logout').style.display = 'flex';
+  const name = profile.fullName || profile.firstName || user.displayName || user.email?.split('@')[0] || 'Officer';
+  document.getElementById('admin-name').textContent = name;
+  document.getElementById('admin-role-lbl').textContent = profile.role || 'officer';
+  if (user.photoURL) av.innerHTML = '<img src="'+user.photoURL+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+  else av.textContent = name.slice(0,2).toUpperCase();
+  window._db = db; window._auth = auth; window._currentAdminUser = user;
+  await loadComplaints();
+});
+
+async function loadComplaints() {
+  let list = [];
+  try {
+    const snap = await getDocs(query(collection(db,'complaints'), orderBy('createdAt','desc')));
+    snap.forEach(d => list.push({id:d.id,...d.data()}));
+  } catch(e) { console.warn('complaints:',e.message); }
+  window._complaints = list;
+  renderList(list);
+  updateStats(list);
+}
+
+async function loadUsers() {
+  const tb = document.getElementById('users-tbody');
+  const cnt = document.getElementById('user-count');
+  let users = [];
+  try {
+    const snap = await getDocs(collection(db,'users'));
+    snap.forEach(d => users.push({id:d.id,...d.data()}));
+  } catch(e) { console.warn('users:',e.message); }
+  cnt.textContent = users.length + ' registered user' + (users.length!==1?'s':'');
+  if (!users.length) { tb.innerHTML='<tr><td colspan="8" style="padding:40px;text-align:center;color:#9AA5B4;font-size:12px">No registered users yet.</td></tr>'; return; }
+  tb.innerHTML = users.map((u,i)=>{
+    const ts = u.lastLoginAt?.toDate?u.lastLoginAt.toDate():(u.lastLoginAt?new Date(u.lastLoginAt):null);
+    const d = ts?ts.toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'--';
+    const rc = u.role==='officer'?'#0047AB':'#138808';
+    const rb = u.role==='officer'?'#E8F0FE':'#E8F5E9';
+    return '<tr onmouseover="this.style.background=\'#F5F8FF\'" onmouseout="this.style.background=\'\'">'
+      +'<td style="color:#9AA5B4">'+(i+1)+'</td>'
+      +'<td style="font-weight:600">'+(u.fullName||[u.firstName,u.lastName].filter(Boolean).join(' ')||'--')+'</td>'
+      +'<td style="color:#4A5568">'+(u.email||'--')+'</td>'
+      +'<td><span style="padding:2px 8px;background:'+rb+';color:'+rc+';border-radius:2px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em">'+(u.role||'citizen')+'</span></td>'
+      +'<td style="color:#4A5568">'+(u.ward||'--')+'</td>'
+      +'<td style="color:#4A5568">'+(u.loginCount||0)+'</td>'
+      +'<td style="color:#4A5568;font-size:11px">'+d+'</td>'
+      +'<td style="color:#4A5568;text-transform:capitalize">'+(u.provider||'email')+'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+function renderList(list) {
+  const el = document.getElementById('complaint-list');
+  document.getElementById('tab-badge').textContent = list.length;
+  if (!list.length) {
+    el.innerHTML='<div style="padding:40px 16px;text-align:center;color:#9AA5B4;font-size:12px"><i class="fa-solid fa-inbox" style="font-size:28px;display:block;margin-bottom:10px;color:#D0D7E2"></i>No complaints found yet.<br><small style="display:block;margin-top:6px">They appear here once citizens file grievances.</small></div>';
+    return;
+  }
+  el.innerHTML = list.map((c,i)=>{
+    const s = (c.status||'open').toLowerCase();
+    const bc = s.includes('resolved')?'badge-resolved':s.includes('progress')?'badge-progress':s.includes('critical')?'badge-critical':'badge-open';
+    const ts = c.createdAt?.toDate?c.createdAt.toDate():null;
+    const dt = ts?ts.toLocaleDateString('en-IN',{day:'numeric',month:'short'}):'--';
+    const id = c.ticketId||c.id?.slice(0,8).toUpperCase()||'GR-'+String(i+1).padStart(4,'0');
+    const title = (c.title||c.subject||'Complaint').slice(0,55);
+    return '<div class="complaint-row" id="cr-'+i+'" onclick="showDetail('+i+')">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px">'
+      +'<span style="font-size:10px;font-weight:700;color:#003366">#'+id+'</span>'
+      +'<span class="badge '+bc+'">'+s+'</span></div>'
+      +'<p style="font-size:12px;font-weight:600;color:#1A1A2E;margin-bottom:4px;line-height:1.4">'+title+((c.title||c.subject||'').length>55?'...':'')+'</p>'
+      +'<div style="display:flex;align-items:center;gap:8px;font-size:10px;color:#9AA5B4">'
+      +'<span><i class="fa-solid fa-calendar-days" style="margin-right:3px"></i>'+dt+'</span>'
+      +(c.ward?'<span><i class="fa-solid fa-location-dot" style="margin-right:3px"></i>'+c.ward+'</span>':'')
+      +'</div></div>';
+  }).join('');
+}
+
+window.showDetail = function(i) {
+  const c = window._complaints[i];
+  if (!c) return;
+  document.querySelectorAll('.complaint-row').forEach(r=>r.classList.remove('selected'));
+  document.getElementById('cr-'+i)?.classList.add('selected');
+  const s = (c.status||'open').toLowerCase();
+  const bc = s.includes('resolved')?'badge-resolved':s.includes('progress')?'badge-progress':s.includes('critical')?'badge-critical':'badge-open';
+  const ts = c.createdAt?.toDate?c.createdAt.toDate():null;
+  const dt = ts?ts.toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'--';
+  const id = c.ticketId||c.id?.slice(0,8).toUpperCase()||'GR-'+(i+1);
+  const field = (l,v) => '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#4A5568;margin-bottom:3px">'+l+'</p><p style="font-size:13px;font-weight:600;color:#1A1A2E">'+(v||'--')+'</p></div>';
+  document.getElementById('complaint-detail').innerHTML =
+    '<div class="card-hdr" style="justify-content:space-between"><span><i class="fa-solid fa-file-lines"></i> Complaint #'+id+'</span><span class="badge '+bc+'">'+s+'</span></div>'
+    +'<div style="padding:20px">'
+    +'<h2 style="font-size:16px;font-weight:700;color:#003366;margin-bottom:14px">'+(c.title||c.subject||'Untitled Complaint')+'</h2>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:18px">'
+    +field('Submitted By',c.submittedBy||c.citizenName)
+    +field('Email',c.email)+field('Phone',c.phone)+field('Ward / Zone',c.ward)
+    +field('Department',c.department)+field('Priority',c.priority)+field('Date Filed',dt)+field('Ticket ID',id)
+    +'</div>'
+    +(c.description?'<div style="margin-bottom:16px"><p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#4A5568;margin-bottom:6px">Description</p><div style="background:#F5F7FA;border:1px solid #D0D7E2;border-radius:3px;padding:12px;font-size:12px;line-height:1.7;color:#1A1A2E">'+c.description+'</div></div>':'')
+    +(c.aiSummary?'<div style="margin-bottom:16px;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:3px;padding:12px"><p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#4338CA;margin-bottom:6px"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:4px"></i>AI Summary</p><p style="font-size:12px;line-height:1.7;color:#1A1A2E">'+c.aiSummary+'</p></div>':'')
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:14px;border-top:1px solid #EEF0F5">'
+    +'<button class="btn-navy" onclick="setStatus(\''+c.id+'\',\'in-progress\')"><i class="fa-solid fa-play" style="font-size:10px"></i> Move To Progress</button>'
+    +'</div></div>';
+};
+
+window.setStatus = async function(id, status) {
+  if (!id) { showToast('No document ID -- cannot update','#CC0000'); return; }
+  try {
+    await updateDoc(doc(db,'complaints',id), {status, updatedAt: serverTimestamp()});
+    await loadComplaints();
+    showToast('Status updated to "'+status+'"','#138808');
+  } catch(e) { showToast('Update failed: '+e.message,'#CC0000'); }
+};
+
+function updateStats(c) {
+  document.getElementById('st-total').textContent = c.length;
+  document.getElementById('st-open').textContent = c.filter(x=>!x.status||x.status==='open').length;
+  document.getElementById('st-progress').textContent = c.filter(x=>x.status==='in-progress').length;
+  document.getElementById('st-resolved').textContent = c.filter(x=>x.status==='resolved').length;
+  document.getElementById('st-critical').textContent = c.filter(x=>x.status==='critical').length;
+}
+
+window.filterBy = function(type) {
+  document.querySelectorAll('.filter-btn').forEach(b=>{b.style.background='#fff';b.style.color='#4A5568';b.style.borderColor='#D0D7E2'});
+  const b = document.getElementById('f-'+type);
+  if(b){b.style.background='#003366';b.style.color='#fff';b.style.borderColor='#003366'}
+  const all = window._complaints||[];
+  const f = type==='all'?all:type==='open'?all.filter(x=>!x.status||x.status==='open'):type==='progress'?all.filter(x=>x.status==='in-progress'):all.filter(x=>x.status===type);
+  renderList(f);
+};
+
+window.switchTab = function(tab) {
+  ['complaints','users'].forEach(t=>{
+    document.getElementById('view-'+t).style.display='none';
+    document.getElementById('atab-'+t)?.classList.remove('active');
+  });
+  document.getElementById('view-'+tab).style.display='block';
+  document.getElementById('atab-'+tab)?.classList.add('active');
+  if(tab==='users') loadUsers();
+};
+
+window.refreshComplaints = async function() { await loadComplaints(); showToast('Queue refreshed','#003366'); };
+window.adminLogout = async function() { await signOut(auth); window.location.href = './admin-login.html'; };
+
+window.showToast = function(msg, color) {
+  color = color||'#003366';
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:10px 18px;background:'+color+';color:#fff;border-radius:3px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);transition:opacity .2s;font-family:Noto Sans,sans-serif';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.remove()},200)},3000);
+};
+/* ═══════════════════════════════════════
+   MINDPAL REPORT → FIRESTORE
+   Collection: mindpalReports
+   ═══════════════════════════════════════ */
+
+/* ── Save report manually from form ── */
+window.saveMindpalReport = async function() {
+  const msgEl  = document.getElementById('mp-form-msg');
+  const title  = document.getElementById('mp-title').value.trim();
+  const summary = document.getElementById('mp-summary').value.trim();
+
+  if (!title) {
+    msgEl.style.cssText = 'display:block;background:#FFF0F0;border:1px solid #FFAAAA;border-radius:3px;color:#CC0000;padding:7px 10px;font-size:12px';
+    msgEl.textContent = 'Please enter a complaint title.';
+    return;
+  }
+
+  msgEl.style.cssText = 'display:block;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:3px;color:#4338CA;padding:7px 10px;font-size:12px';
+  msgEl.textContent = 'Saving to Firestore...';
+
+  try {
+    const officer = window._currentAdminUser;
+    const ticketId = 'MP-' + Date.now().toString(36).toUpperCase();
+
+    const report = {
+      source:       'manual',
+      ticketId,
+      title,
+      citizenName:  document.getElementById('mp-citizen').value.trim()  || '',
+      department:   document.getElementById('mp-dept').value            || '',
+      priority:     document.getElementById('mp-priority').value        || 'normal',
+      ward:         document.getElementById('mp-ward').value.trim()     || '',
+      aiSummary:    summary,
+      routedTo:     document.getElementById('mp-routed').value.trim()   || '',
+      status:       'open',
+      loggedBy:     officer?.email || 'admin',
+      loggedByUid:  officer?.uid   || '',
+      createdAt:    serverTimestamp(),
+      updatedAt:    serverTimestamp(),
+    };
+
+    await addDoc(collection(db, 'mindpalReports'), report);
+
+    /* Also mirror into complaints collection so it shows in queue */
+    await addDoc(collection(db, 'complaints'), {
+      ...report,
+      source: 'mindpal',
+    });
+
+    msgEl.style.cssText = 'display:block;background:#E8F5E9;border:1px solid #A8D5AA;border-radius:3px;color:#138808;padding:7px 10px;font-size:12px';
+    msgEl.textContent = 'Saved! Ticket: ' + ticketId;
+
+    /* Clear form */
+    ['mp-citizen','mp-title','mp-ward','mp-summary','mp-routed'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('mp-dept').value = '';
+    document.getElementById('mp-priority').value = 'normal';
+
+    setTimeout(() => { msgEl.style.display = 'none'; }, 4000);
+
+    /* Refresh lists */
+    await loadMindpalReports();
+    await loadComplaints();
+    showToast('Report saved — Ticket: ' + ticketId, '#138808');
+
+  } catch(e) {
+    msgEl.style.cssText = 'display:block;background:#FFF0F0;border:1px solid #FFAAAA;border-radius:3px;color:#CC0000;padding:7px 10px;font-size:12px';
+    msgEl.textContent = 'Save failed: ' + e.message;
+    console.error('[MindPal save]', e);
+  }
+};
+
+/* ── Load saved reports from Firestore ── */
+window.loadMindpalReports = async function() {
+  const listEl = document.getElementById('mp-reports-list');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#9AA5B4;font-size:12px"><i class="fa-solid fa-spinner fa-spin" style="font-size:16px;display:block;margin-bottom:8px"></i>Loading...</div>';
+
+  let reports = [];
+  try {
+    const snap = await getDocs(query(collection(db,'mindpalReports'), orderBy('createdAt','desc')));
+    snap.forEach(d => reports.push({id:d.id,...d.data()}));
+  } catch(e) { console.warn('mindpalReports:', e.message); }
+
+  if (!reports.length) {
+    listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#9AA5B4;font-size:12px"><i class="fa-solid fa-inbox" style="font-size:20px;display:block;margin-bottom:8px;color:#D0D7E2"></i>No reports saved yet.<br><small>Fill the form and click Save.</small></div>';
+    return;
+  }
+
+  const priorityColor = {critical:'#CC0000',high:'#FF6600',normal:'#0047AB',low:'#138808'};
+
+  listEl.innerHTML = reports.map(r => {
+    const ts  = r.createdAt?.toDate ? r.createdAt.toDate() : null;
+    const dt  = ts ? ts.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '--';
+    const pc  = priorityColor[r.priority] || '#4A5568';
+    const src = r.source === 'auto' ? '<span style="font-size:9px;background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;border-radius:2px;padding:1px 5px;font-weight:700">AUTO</span>' : '<span style="font-size:9px;background:#F5F7FA;color:#4A5568;border:1px solid #D0D7E2;border-radius:2px;padding:1px 5px;font-weight:700">MANUAL</span>';
+    return `<div style="padding:10px 12px;border-bottom:1px solid #EEF0F5">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:3px">
+        <span style="font-size:10px;font-weight:700;color:#003366">${r.ticketId||r.id.slice(0,8)}</span>
+        <div style="display:flex;gap:4px;align-items:center">${src}
+          <span style="font-size:9px;font-weight:700;color:${pc};text-transform:uppercase">${r.priority||'normal'}</span>
+        </div>
+      </div>
+      <p style="font-size:12px;font-weight:600;color:#1A1A2E;margin-bottom:3px;line-height:1.4">${(r.title||'').slice(0,50)}${(r.title||'').length>50?'...':''}</p>
+      <p style="font-size:10px;color:#9AA5B4">${dt} &nbsp;&middot;&nbsp; ${r.department||'--'} &nbsp;&middot;&nbsp; ${r.ward||'--'}</p>
+      ${r.aiSummary ? `<p style="font-size:11px;color:#4A5568;margin-top:4px;background:#F5F7FA;padding:5px 8px;border-radius:2px;border-left:2px solid #C7D2FE">${r.aiSummary.slice(0,120)}${r.aiSummary.length>120?'...':''}</p>` : ''}
+      <div style="margin-top:6px;display:flex;justify-content:flex-end">
+        <button onclick="deleteMindpalReport('${r.id}')" style="background:none;border:1px solid #FFAAAA;border-radius:2px;padding:2px 8px;font-size:10px;color:#CC0000;cursor:pointer;font-family:'Noto Sans',sans-serif">
+          <i class="fa-solid fa-trash" style="font-size:9px"></i> Delete
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+/* ── Delete a report ── */
+window.deleteMindpalReport = async function(id) {
+  if (!confirm('Delete this report? This cannot be undone.')) return;
+  try {
+    const { deleteDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    await deleteDoc(fsDoc(db, 'mindpalReports', id));
+    await loadMindpalReports();
+    showToast('Report deleted','#CC0000');
+  } catch(e) { showToast('Delete failed: '+e.message,'#CC0000'); }
+};
+
+/* ── Auto-capture: listen for postMessage from MindPal iframe ── */
+window.addEventListener('message', async function(event) {
+  /* Accept messages from MindPal domain only */
+  if (!event.origin.includes('getmindpal.com') && !event.origin.includes('mindpal')) return;
+
+  const data = event.data;
+  if (!data || typeof data !== 'object') return;
+
+  console.log('[MindPal postMessage]', data);
+
+  try {
+    const officer = window._currentAdminUser;
+    const ticketId = 'MP-AUTO-' + Date.now().toString(36).toUpperCase();
+
+    const report = {
+      source:       'auto',
+      ticketId,
+      title:        data.title       || data.subject    || data.complaintTitle || 'MindPal Auto-Report',
+      citizenName:  data.citizenName || data.name       || data.userName       || '',
+      department:   data.department  || data.dept       || '',
+      priority:     data.priority    || data.severity   || 'normal',
+      ward:         data.ward        || data.location   || data.zone           || '',
+      aiSummary:    data.summary     || data.output     || data.result         || JSON.stringify(data).slice(0,500),
+      routedTo:     data.routedTo    || data.assignedTo || '',
+      status:       'open',
+      rawPayload:   JSON.stringify(data).slice(0,2000),
+      loggedBy:     officer?.email   || 'auto',
+      loggedByUid:  officer?.uid     || '',
+      createdAt:    serverTimestamp(),
+      updatedAt:    serverTimestamp(),
+    };
+
+    await addDoc(collection(db, 'mindpalReports'), report);
+    await addDoc(collection(db, 'complaints'), { ...report, source: 'mindpal-auto' });
+
+    /* Show auto-save banner */
+    const banner = document.getElementById('mindpal-auto-saved');
+    const bannerMsg = document.getElementById('mindpal-auto-msg');
+    if (banner) {
+      bannerMsg.textContent = 'MindPal report auto-saved to Firestore — Ticket: ' + ticketId;
+      banner.style.display = 'flex';
+      setTimeout(() => { banner.style.display = 'none'; }, 5000);
+    }
+
+    await loadMindpalReports();
+    await loadComplaints();
+    showToast('MindPal report auto-saved!', '#4338CA');
+
+  } catch(e) {
+    console.warn('[MindPal auto-save failed]', e.message);
+  }
+});
+
+</script>
+</body>
+</html>

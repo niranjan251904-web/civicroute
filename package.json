@@ -1,0 +1,14 @@
+{
+  "name": "civicroute-ai",
+  "version": "1.0.0",
+  "description": "CivicRoute AI — Citizen Grievance & Order Auto-Routing Platform",
+  "scripts": {
+    "dev":   "npx serve . --listen 3000",
+    "start": "npx serve . --listen 3000",
+    "admin": "npx serve . --listen 3001",
+    "service": "npx serve . --listen 3002"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

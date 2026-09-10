@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicRoute AI — Citizen Grievance &amp; Order Auto-Routing Platform</title>
+  <meta name="description" content="CivicRoute AI automatically triages, splits, and routes multi-department citizen grievances and official directives to the right municipal department — powered by AI NLP routing.">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Hero Section Styles -->
+  <link rel="stylesheet" href="./css/heroSection.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            ios: {
+              bg: '#F4F6FB',
+              card: '#FFFFFF',
+              border: '#E2E8F0',
+              text: '#1E293B',
+              subtext: '#64748B',
+              blue: '#2F80ED',
+              blueHover: '#1D68CE',
+              indigo: '#5B67CA',
+              indigoLight: '#EEF0FB',
+              mint: '#34C759',
+              mintLight: '#EAFCEF',
+              amber: '#FF9500',
+              amberLight: '#FFF8E6',
+              red: '#FF3B30',
+              redLight: '#FFEBEA',
+              purple: '#AF52DE',
+              purpleLight: '#F7EDFC'
+            }
+          },
+          boxShadow: {
+            'ios-sm': '0 2px 8px rgba(0, 0, 0, 0.02)',
+            'ios': '0 4px 16px rgba(0, 0, 0, 0.03)',
+            'ios-md': '0 8px 24px rgba(0, 0, 0, 0.05)',
+            'ios-lg': '0 12px 32px rgba(0, 0, 0, 0.08)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom CSS animations and rules */
+    body {
+      background-color: #F4F6FB;
+      font-family: 'Inter', -apple-system, sans-serif;
+      color: #1E293B;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Smooth segmented control transitions */
+    .segmented-btn {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .segmented-btn.active {
+      background-color: #FFFFFF;
+      color: #2F80ED;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    /* Soft pulse for live status badge */
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.03); }
+    }
+    .pulse-badge {
+      animation: pulse-subtle 2s infinite ease-in-out;
+    }
+
+    /* Custom Scrollbar for iOS feel */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       STICKY HEADER  (z-40 — sits above the hero canvas z-10)
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-ios-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Logo & System Branding -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-ios-blue to-ios-indigo flex items-center justify-center text-white shadow-md shadow-ios-blue/20">
+          <i class="fa-solid me-0 fa-diagram-project text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold text-ios-text tracking-tight">CivicRoute AI</h1>
+            <span class="px-2 py-0.5 text-[10px] font-semibold tracking-wider text-ios-blue bg-ios-indigoLight rounded-full uppercase">Gov v2.4</span>
+          </div>
+          <p class="text-xs text-ios-subtext">Citizen Grievance &amp; Order Auto-Routing Engine</p>
+        </div>
+      </div>
+
+      <!-- Center Segmented View Switcher (hidden until dashboard visible) -->
+      <nav id="header-nav" class="hidden md:flex p-1 bg-slate-100 rounded-xl border border-slate-200/60 opacity-0 transition-opacity duration-500">
+        <button onclick="switchTab('simulator')" id="tab-btn-simulator" class="segmented-btn active px-4 py-1.5 text-xs font-medium rounded-lg flex items-center gap-2 text-ios-subtext">
+          <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+          <span>Auto-Routing Engine</span>
+        </button>
+        <button onclick="switchTab('queue')" id="tab-btn-queue" class="segmented-btn px-4 py-1.5 text-xs font-medium rounded-lg flex items-center gap-2 text-ios-subtext">
+          <i class="fa-solid fa-layer-group text-xs"></i>
+          <span>Department Queue</span>
+          <span id="queue-badge-count" class="ml-1 px-1.5 py-0.2 bg-ios-blue text-white rounded-full text-[10px] font-bold">5</span>
+        </button>
+        <button onclick="switchTab('analytics')" id="tab-btn-analytics" class="segmented-btn px-4 py-1.5 text-xs font-medium rounded-lg flex items-center gap-2 text-ios-subtext">
+          <i class="fa-solid fa-chart-line text-xs"></i>
+          <span>SLA &amp; Operations</span>
+        </button>
+      </nav>
+
+      <!-- Right User / District Status -->
+      <div class="flex items-center space-x-3">
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-ios-bg border border-ios-border rounded-xl">
+          <span class="w-2.5 h-2.5 rounded-full bg-ios-mint pulse-badge"></span>
+          <span class="text-xs font-medium text-ios-text">District Control Room</span>
+        </div>
+        <button onclick="triggerToast('System operating normally. AI routing models active.', 'info')" class="p-2 text-ios-subtext hover:text-ios-blue hover:bg-slate-100 rounded-xl transition-all" title="System Notifications">
+          <i class="fa-regular fa-bell text-base"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Bar (hidden until dashboard visible) -->
+    <div id="mobile-nav" class="md:hidden hidden flex p-1 bg-slate-100 border-t border-ios-border justify-around">
+      <button onclick="switchTab('simulator')" id="mobile-btn-simulator" class="py-2 px-3 text-xs font-medium text-ios-blue border-b-2 border-ios-blue">Engine</button>
+      <button onclick="switchTab('queue')" id="mobile-btn-queue" class="py-2 px-3 text-xs font-medium text-ios-subtext">Queue (<span id="mobile-badge-count">5</span>)</button>
+      <button onclick="switchTab('analytics')" id="mobile-btn-analytics" class="py-2 px-3 text-xs font-medium text-ios-subtext">Analytics</button>
+    </div>
+  </header>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       HERO SECTION — Scroll-driven frame animation
+       Structure:
+         #hero-scroll-container  (tall: 500vh — defines total scroll range)
+           └─ #hero-section       (sticky: 100vh — stays viewport-filling)
+                ├─ #hero-canvas   (canvas: cover-fill frame rendering)
+                ├─ #hero-overlay  (branding + tagline, pointer-events:none)
+                ├─ #hero-progress-bar (thin strip showing scroll progress)
+                └─ #hero-loader   (initial loading state)
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="hero-scroll-container">
+    <section id="hero-section" aria-label="CivicRoute AI hero animation — city grievance map">
+
+      <!-- Canvas: frame-sequence renders here -->
+      <canvas id="hero-canvas" aria-hidden="true"></canvas>
+
+      <!-- Overlay: branding on top of animation -->
+      <div id="hero-overlay" aria-hidden="true">
+        <!-- Live badge -->
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          AI Routing Active — District Control Room
+        </div>
+
+        <!-- Headline -->
+        <h2 class="hero-headline">
+          Every Citizen Complaint.<br>
+          <span class="highlight">Routed Instantly.</span>
+        </h2>
+
+        <!-- Subline -->
+        <p class="hero-subline">
+          CivicRoute AI splits complex multi-issue grievances and dispatches work orders to the right department — automatically, in under one second.
+        </p>
+
+        <!-- Scroll CTA -->
+        <div class="hero-scroll-cta" id="scroll-cta">
+          <span>Scroll to explore</span>
+          <div class="scroll-arrow"></div>
+        </div>
+      </div>
+
+      <!-- Scroll progress bar strip -->
+      <div id="hero-progress-bar" role="progressbar" aria-label="Hero animation progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+      <!-- Initial buffer loading state -->
+      <div id="hero-loader">
+        <div class="loader-spinner" aria-hidden="true"></div>
+        <p class="loader-text">Loading city map…</p>
+      </div>
+
+    </section>
+  </div>
+  <!-- /hero-scroll-container -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       DASHBOARD WRAPPER
+       Hidden initially; DashboardLoader reveals it after hero completes.
+       The dashboard markup is identical to the original — zero redesign.
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="dashboard-wrapper">
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex-grow pb-12">
+
+      <!-- KPI Header Section -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <!-- KPI 1 -->
+        <div class="bg-ios-card p-4 rounded-2xl border border-ios-border shadow-ios flex items-center space-x-4">
+          <div class="w-11 h-11 rounded-xl bg-blue-50 text-ios-blue flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-file-signature text-lg"></i>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-ios-subtext">Total Intake</p>
+            <p class="text-xl font-bold text-ios-text tracking-tight" id="stat-total-intake">1,482</p>
+            <p class="text-[11px] text-ios-mint font-medium flex items-center gap-1 mt-0.5">
+              <i class="fa-solid fa-arrow-trend-up"></i> +12.4% today
+            </p>
+          </div>
+        </div>
+
+        <!-- KPI 2 -->
+        <div class="bg-ios-card p-4 rounded-2xl border border-ios-border shadow-ios flex items-center space-x-4">
+          <div class="w-11 h-11 rounded-xl bg-purple-50 text-ios-purple flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-sitemap text-lg"></i>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-ios-subtext">Multi-Dept Split Ratio</p>
+            <p class="text-xl font-bold text-ios-text tracking-tight">1 : 2.4</p>
+            <p class="text-[11px] text-ios-subtext mt-0.5">Depts per document</p>
+          </div>
+        </div>
+
+        <!-- KPI 3 -->
+        <div class="bg-ios-card p-4 rounded-2xl border border-ios-border shadow-ios flex items-center space-x-4">
+          <div class="w-11 h-11 rounded-xl bg-amber-50 text-ios-amber flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-bolt text-lg"></i>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-ios-subtext">Avg Processing Time</p>
+            <p class="text-xl font-bold text-ios-text tracking-tight">0.84s</p>
+            <p class="text-[11px] text-ios-mint font-medium flex items-center gap-1 mt-0.5">
+              <i class="fa-solid fa-check"></i> Instant Triage
+            </p>
+          </div>
+        </div>
+
+        <!-- KPI 4 -->
+        <div class="bg-ios-card p-4 rounded-2xl border border-ios-border shadow-ios flex items-center space-x-4">
+          <div class="w-11 h-11 rounded-xl bg-emerald-50 text-ios-mint flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-ios-subtext">SLA On-Time Rate</p>
+            <p class="text-xl font-bold text-ios-text tracking-tight">96.8%</p>
+            <p class="text-[11px] text-ios-mint font-medium flex items-center gap-1 mt-0.5">
+              <i class="fa-solid fa-shield-halved"></i> +2.1% SLA compliance
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 1: AUTO-ROUTING SIMULATOR (DEFAULT) -->
+      <div id="view-simulator" class="space-y-6">
+
+        <!-- Top Input & Quick Templates Box -->
+        <div class="bg-ios-card rounded-2xl border border-ios-border shadow-ios p-6">
+
+          <!-- Header & Mode Switcher -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-4 border-b border-ios-border">
+            <div>
+              <h2 class="text-lg font-bold text-ios-text flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square text-ios-blue"></i> Document Triage &amp; Intake Hub
+              </h2>
+              <p class="text-xs text-ios-subtext mt-0.5">Input complex multi-issue complaints or official directives to auto-split and auto-route.</p>
+            </div>
+
+            <!-- Intake Mode Switcher -->
+            <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 self-start sm:self-auto">
+              <button onclick="setIntakeType('citizen')" id="intake-type-citizen" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all bg-white text-ios-blue shadow-sm">
+                <i class="fa-solid fa-user me-1"></i> Citizen Grievance
+              </button>
+              <button onclick="setIntakeType('collector')" id="intake-type-collector" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all text-ios-subtext hover:text-ios-text">
+                <i class="fa-solid fa-building-columns me-1"></i> Collector Directive
+              </button>
+            </div>
+          </div>
+
+          <!-- Pre-loaded Preset Samples -->
+          <div class="mb-4">
+            <label class="block text-xs font-semibold text-ios-subtext uppercase tracking-wider mb-2">
+              <i class="fa-solid fa-lightbulb text-amber-500 me-1"></i> Load Test Preset Sample Document:
+            </label>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <button onclick="loadSample(1)" class="text-left p-3 rounded-xl border border-slate-200 hover:border-ios-blue bg-slate-50/50 hover:bg-blue-50/40 transition-all group">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-bold text-ios-text group-hover:text-ios-blue">Sample 1: Triple Ward Issue</span>
+                  <span class="px-1.5 py-0.5 text-[10px] bg-amber-100 text-amber-800 rounded font-semibold">3 Depts</span>
+                </div>
+                <p class="text-xs text-ios-subtext line-clamp-2">Potholes on MG Road causing waterlogging, contaminated drinking water in Ward 12, and streetlight blackout...</p>
+              </button>
+
+              <button onclick="loadSample(2)" class="text-left p-3 rounded-xl border border-slate-200 hover:border-ios-blue bg-slate-50/50 hover:bg-blue-50/40 transition-all group">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-bold text-ios-text group-hover:text-ios-blue">Sample 2: Collector Emergency Order</span>
+                  <span class="px-1.5 py-0.5 text-[10px] bg-red-100 text-red-800 rounded font-semibold">High Urgency</span>
+                </div>
+                <p class="text-xs text-ios-subtext line-clamp-2">Urgent directive: Clear drainage blockages near General Hospital within 24 hours &amp; repair fallen transformer in Ward 4...</p>
+              </button>
+
+              <button onclick="loadSample(3)" class="text-left p-3 rounded-xl border border-slate-200 hover:border-ios-blue bg-slate-50/50 hover:bg-blue-50/40 transition-all group">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-bold text-ios-text group-hover:text-ios-blue">Sample 3: Health &amp; Sanitation</span>
+                  <span class="px-1.5 py-0.5 text-[10px] bg-green-100 text-green-800 rounded font-semibold">2 Depts</span>
+                </div>
+                <p class="text-xs text-ios-subtext line-clamp-2">Uncollected garbage near Primary Health Center causing mosquito breeding and overflowing sewage line...</p>
+              </button>
+            </div>
+          </div>
+
+          <!-- Input Textarea -->
+          <div class="relative">
+            <textarea id="input-text" rows="4" class="w-full p-4 rounded-xl border border-ios-border bg-slate-50/50 text-sm text-ios-text focus:bg-white focus:outline-none focus:ring-2 focus:ring-ios-blue/40 focus:border-ios-blue transition-all resize-none font-sans" placeholder="Type or paste a complaint narrative or official directive here..."></textarea>
+
+            <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center space-x-2 text-xs text-ios-subtext">
+                <span id="intake-indicator-badge" class="px-2.5 py-1 bg-blue-50 text-ios-blue rounded-lg font-medium border border-blue-100">
+                  Mode: Citizen Grievance Portal
+                </span>
+                <span>• Natural Language AI Parsing</span>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <button onclick="clearInput()" class="px-3 py-2 text-xs font-medium text-ios-subtext hover:text-ios-text hover:bg-slate-100 rounded-xl transition-all">Clear</button>
+                <button onclick="analyzeDocument()" id="btn-analyze" class="px-5 py-2.5 bg-ios-blue hover:bg-ios-blueHover active:scale-[0.98] text-white text-xs font-semibold rounded-xl shadow-md shadow-ios-blue/20 flex items-center space-x-2 transition-all">
+                  <i class="fa-solid fa-microchip"></i>
+                  <span>Analyze &amp; Auto-Route Document</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- AI Processing Simulation Card -->
+        <div id="ai-processing-card" class="hidden bg-ios-card rounded-2xl border border-ios-border p-6 shadow-ios text-center">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-50 text-ios-blue mb-3">
+            <i class="fa-solid fa-spinner fa-spin text-xl"></i>
+          </div>
+          <h3 class="text-base font-bold text-ios-text">AI NLP Routing Engine Executing</h3>
+          <p class="text-xs text-ios-subtext mt-1 max-w-md mx-auto">Parsing text structure, detecting geographical entities, identifying multi-department responsibilities &amp; extracting SLA deadlines...</p>
+          <div class="flex flex-wrap justify-center gap-2 mt-4 max-w-xl mx-auto">
+            <span id="step-1" class="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-xs font-medium transition-all">1. Entity Extraction</span>
+            <span id="step-2" class="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-xs font-medium transition-all">2. Urgency Detection</span>
+            <span id="step-3" class="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-xs font-medium transition-all">3. Multi-Issue Split</span>
+            <span id="step-4" class="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-xs font-medium transition-all">4. Routing Dispatch</span>
+          </div>
+        </div>
+
+        <!-- Results Container -->
+        <div id="analysis-results" class="hidden space-y-6">
+
+          <!-- Extracted Summary Metadata Header -->
+          <div class="bg-ios-card rounded-2xl border border-ios-border p-6 shadow-ios">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-ios-border">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-ios-blue" id="res-doc-type">Citizen Grievance</span>
+                  <span class="text-xs text-ios-subtext" id="res-doc-id">ID: #CR-2026-8921</span>
+                </div>
+                <h3 class="text-lg font-bold text-ios-text" id="res-doc-title">Document Analysis &amp; Smart Triage Summary</h3>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <button onclick="dispatchAllWorkOrders()" class="px-4 py-2 bg-ios-mint hover:bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all">
+                  <i class="fa-solid fa-paper-plane"></i> Dispatch Work Orders
+                </button>
+                <button onclick="exportResultJSON()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-ios-text rounded-xl text-xs font-medium transition-all flex items-center gap-1.5">
+                  <i class="fa-solid fa-download"></i> Export Data
+                </button>
+              </div>
+            </div>
+
+            <!-- Metadata Pill Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+              <div class="p-3 bg-ios-bg rounded-xl border border-ios-border">
+                <span class="text-[11px] font-semibold text-ios-subtext uppercase tracking-wider">Overall Urgency</span>
+                <div class="mt-1 flex items-center gap-2" id="res-urgency-badge">
+                  <span class="w-2.5 h-2.5 rounded-full bg-ios-red"></span>
+                  <span class="text-sm font-bold text-ios-text">Critical (P1)</span>
+                </div>
+              </div>
+              <div class="p-3 bg-ios-bg rounded-xl border border-ios-border">
+                <span class="text-[11px] font-semibold text-ios-subtext uppercase tracking-wider">Target SLA Deadline</span>
+                <p class="text-sm font-bold text-ios-text mt-1" id="res-sla-date">48 Hours (Sep 11, 2026)</p>
+              </div>
+              <div class="p-3 bg-ios-bg rounded-xl border border-ios-border">
+                <span class="text-[11px] font-semibold text-ios-subtext uppercase tracking-wider">Detected Location</span>
+                <p class="text-sm font-bold text-ios-text mt-1" id="res-location">Ward 12, MG Road Zone</p>
+              </div>
+              <div class="p-3 bg-ios-bg rounded-xl border border-ios-border">
+                <span class="text-[11px] font-semibold text-ios-subtext uppercase tracking-wider">Split Departments</span>
+                <p class="text-sm font-bold text-ios-blue mt-1" id="res-split-count">3 Distinct Work Orders</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi-Department Split Cards -->
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-bold text-ios-text">Auto-Split Work Orders Generated</h3>
+                <p class="text-xs text-ios-subtext">The input text was parsed into separate departmental tasks to ensure parallel execution.</p>
+              </div>
+              <span class="text-xs text-ios-subtext font-medium bg-slate-100 px-3 py-1 rounded-full">
+                <i class="fa-solid fa-arrows-split-up-and-left text-ios-indigo me-1"></i> Multi-Route Engine Active
+              </span>
+            </div>
+            <div class="space-y-4" id="split-cards-container">
+              <!-- Dynamic Work Order Cards injected via JS -->
+            </div>
+          </div>
+
+        </div>
+        <!-- /analysis-results -->
+
+      </div>
+      <!-- /view-simulator -->
+
+      <!-- TAB 2: DEPARTMENT ROUTING QUEUE -->
+      <div id="view-queue" class="hidden space-y-5">
+
+        <!-- Queue Header Controls -->
+        <div class="bg-ios-card rounded-2xl border border-ios-border p-5 shadow-ios flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-ios-text">Central Department Dispatch Queue</h2>
+            <p class="text-xs text-ios-subtext">Monitor and manage all routed work orders across all municipal departments.</p>
+          </div>
+
+          <!-- Filter Controls -->
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="relative">
+              <select id="queue-filter-dept" onchange="filterQueueTable()" class="appearance-none bg-slate-50 border border-ios-border text-xs text-ios-text font-medium py-2 pl-3 pr-8 rounded-xl focus:outline-none focus:ring-2 focus:ring-ios-blue">
+                <option value="ALL">All Departments</option>
+                <option value="Public Works Dept (PWD)">Public Works (PWD)</option>
+                <option value="Water Supply &amp; Sanitation">Water &amp; Sanitation</option>
+                <option value="Electricity Board">Electricity Board</option>
+                <option value="Public Health &amp; Safety">Health &amp; Safety</option>
+                <option value="Revenue &amp; Land Admin">Revenue Admin</option>
+              </select>
+              <i class="fa-solid fa-chevron-down absolute right-3 top-2.5 text-xs text-ios-subtext pointer-events-none"></i>
+            </div>
+
+            <div class="relative">
+              <select id="queue-filter-status" onchange="filterQueueTable()" class="appearance-none bg-slate-50 border border-ios-border text-xs text-ios-text font-medium py-2 pl-3 pr-8 rounded-xl focus:outline-none focus:ring-2 focus:ring-ios-blue">
+                <option value="ALL">All Statuses</option>
+                <option value="Auto-Routed">Auto-Routed</option>
+                <option value="Action Pending">Action Pending</option>
+                <option value="SLA Warning">SLA Warning</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+              <i class="fa-solid fa-chevron-down absolute right-3 top-2.5 text-xs text-ios-subtext pointer-events-none"></i>
+            </div>
+
+            <button onclick="resetQueueFilters()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-medium text-ios-subtext transition-all">Reset Filters</button>
+          </div>
+        </div>
+
+        <!-- Queue Data Table -->
+        <div class="bg-ios-card rounded-2xl border border-ios-border shadow-ios overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50/80 border-b border-ios-border text-[11px] font-semibold text-ios-subtext uppercase tracking-wider">
+                  <th class="py-3.5 px-4">Ticket / Parent ID</th>
+                  <th class="py-3.5 px-4">Target Department</th>
+                  <th class="py-3.5 px-4">Extracted Action Item</th>
+                  <th class="py-3.5 px-4">Location</th>
+                  <th class="py-3.5 px-4">SLA Clock</th>
+                  <th class="py-3.5 px-4">Status</th>
+                  <th class="py-3.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="queue-table-body" class="divide-y divide-ios-border text-xs text-ios-text font-medium">
+                <!-- Dynamic rows populated by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Table Footer Pagination -->
+          <div class="p-4 bg-slate-50/50 border-t border-ios-border flex items-center justify-between text-xs text-ios-subtext">
+            <span id="queue-count-summary">Showing 5 active routed items</span>
+            <div class="flex items-center space-x-2">
+              <button class="px-2.5 py-1 bg-white border border-ios-border rounded-lg text-ios-subtext hover:bg-slate-50 disabled:opacity-50" disabled>Previous</button>
+              <button class="px-2.5 py-1 bg-white border border-ios-border rounded-lg text-ios-text font-semibold shadow-sm">1</button>
+              <button class="px-2.5 py-1 bg-white border border-ios-border rounded-lg text-ios-subtext hover:bg-slate-50 disabled:opacity-50" disabled>Next</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- /view-queue -->
+
+      <!-- TAB 3: ANALYTICS & SLA TRACKING -->
+      <div id="view-analytics" class="hidden space-y-6">
+
+        <!-- Operational Performance Banner -->
+        <div class="bg-ios-card rounded-2xl border border-ios-border p-6 shadow-ios">
+          <h2 class="text-lg font-bold text-ios-text mb-1">Departmental SLA Compliance &amp; Efficiency Metrics</h2>
+          <p class="text-xs text-ios-subtext mb-6">Real-time tracking of ticket distribution speed and SLA resolution performance by department.</p>
+
+          <!-- Department SLA Progress Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+            <div class="p-4 rounded-xl border border-ios-border bg-slate-50/50">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-ios-text">Public Works Dept (PWD)</span>
+                <span class="text-xs font-bold text-ios-mint">98.2% SLA</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-2">
+                <div class="bg-ios-mint h-full rounded-full" style="width: 98.2%;"></div>
+              </div>
+              <div class="flex justify-between text-[11px] text-ios-subtext">
+                <span>Avg Resolution: 28 hrs</span><span>412 Tickets</span>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl border border-ios-border bg-slate-50/50">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-ios-text">Water Supply &amp; Sanitation</span>
+                <span class="text-xs font-bold text-ios-amber">89.4% SLA</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-2">
+                <div class="bg-ios-amber h-full rounded-full" style="width: 89.4%;"></div>
+              </div>
+              <div class="flex justify-between text-[11px] text-ios-subtext">
+                <span>Avg Resolution: 36 hrs</span><span>380 Tickets</span>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl border border-ios-border bg-slate-50/50">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-ios-text">Electricity Board (EB)</span>
+                <span class="text-xs font-bold text-ios-mint">95.8% SLA</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-2">
+                <div class="bg-ios-mint h-full rounded-full" style="width: 95.8%;"></div>
+              </div>
+              <div class="flex justify-between text-[11px] text-ios-subtext">
+                <span>Avg Resolution: 14 hrs</span><span>295 Tickets</span>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl border border-ios-border bg-slate-50/50">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-ios-text">Public Health &amp; Safety</span>
+                <span class="text-xs font-bold text-ios-mint">99.1% SLA</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-2">
+                <div class="bg-ios-mint h-full rounded-full" style="width: 99.1%;"></div>
+              </div>
+              <div class="flex justify-between text-[11px] text-ios-subtext">
+                <span>Avg Resolution: 12 hrs</span><span>210 Tickets</span>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl border border-ios-border bg-slate-50/50">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-ios-text">Revenue &amp; Land Admin</span>
+                <span class="text-xs font-bold text-ios-mint">92.0% SLA</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-2">
+                <div class="bg-ios-mint h-full rounded-full" style="width: 92.0%;"></div>
+              </div>
+              <div class="flex justify-between text-[11px] text-ios-subtext">
+                <span>Avg Resolution: 48 hrs</span><span>185 Tickets</span>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl border border-ios-indigo/20 bg-ios-indigoLight/30 flex flex-col justify-center">
+              <span class="text-xs font-bold text-ios-indigo">AI Router Accuracy</span>
+              <p class="text-2xl font-bold text-ios-text mt-1">99.4%</p>
+              <p class="text-[11px] text-ios-subtext">Zero manual mis-route complaints recorded this month.</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- System Logic Card -->
+        <div class="bg-ios-card rounded-2xl border border-ios-border p-6 shadow-ios">
+          <h3 class="text-sm font-bold text-ios-text mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-ios-blue"></i> How Multi-Department Auto-Splitting Works
+          </h3>
+          <p class="text-xs text-ios-subtext leading-relaxed">
+            Traditional municipal grievance tools assign a single tag (e.g., "Roads") to a complaint containing multiple issues. CivicRoute AI uses natural language understanding (NLU) to identify sub-sentences, mapping distinct clauses to designated nodal officers, calculating independent SLAs for each sub-task, and automatically enforcing district-level oversight.
+          </p>
+        </div>
+
+      </div>
+      <!-- /view-analytics -->
+
+    </main>
+
+  </div>
+  <!-- /dashboard-wrapper -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MODALS & OVERLAYS
+       ═══════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Work Order Detail Modal -->
+  <div id="modal-work-order" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-ios-border shadow-ios-lg w-full max-w-xl overflow-hidden animate-in fade-in zoom-in duration-150">
+      <div class="p-5 border-b border-ios-border flex items-center justify-between bg-slate-50/50">
+        <div class="flex items-center space-x-2">
+          <span class="w-3 h-3 rounded-full bg-ios-blue"></span>
+          <h3 class="text-base font-bold text-ios-text" id="modal-ticket-id">Work Order #WO-8921-A</h3>
+        </div>
+        <button onclick="closeModal('modal-work-order')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-ios-subtext transition-all">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs text-ios-text">
+        <div>
+          <label class="font-semibold text-ios-subtext uppercase text-[10px] tracking-wider block mb-1">Target Department</label>
+          <p class="text-sm font-bold text-ios-blue" id="modal-dept-name">Public Works Department (PWD)</p>
+        </div>
+        <div>
+          <label class="font-semibold text-ios-subtext uppercase text-[10px] tracking-wider block mb-1">Extracted Required Action</label>
+          <p class="p-3 bg-slate-50 rounded-xl border border-ios-border font-medium text-slate-800" id="modal-action-text">Inspect road sub-base on MG Road Ward 12 and repair potholes causing traffic hazard.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 bg-slate-50 rounded-xl border border-ios-border">
+            <span class="font-semibold text-ios-subtext uppercase text-[10px] tracking-wider block">Assigned Nodal Level</span>
+            <span class="font-bold text-ios-text text-xs" id="modal-officer">Assistant Executive Engineer</span>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl border border-ios-border">
+            <span class="font-semibold text-ios-subtext uppercase text-[10px] tracking-wider block">SLA Target</span>
+            <span class="font-bold text-ios-amber text-xs" id="modal-sla-time">48 Hours (P1 Critical)</span>
+          </div>
+        </div>
+
+        <!-- Administrative Controls -->
+        <div class="pt-2 border-t border-ios-border">
+          <label class="font-semibold text-ios-text block mb-2">Administrative Controls:</label>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="reassignDeptAction()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-ios-text font-medium rounded-xl transition-all">
+              <i class="fa-solid fa-arrows-rotate me-1"></i> Re-assign Dept
+            </button>
+            <button onclick="overrideSLAAction()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-ios-text font-medium rounded-xl transition-all">
+              <i class="fa-solid fa-clock-stop me-1"></i> Override SLA
+            </button>
+            <button onclick="copyWorkOrderJSON()" class="px-3 py-2 bg-ios-indigoLight text-ios-indigo font-medium rounded-xl transition-all ml-auto">
+              <i class="fa-solid fa-copy me-1"></i> Copy Task payload
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 bg-slate-50/80 border-t border-ios-border flex justify-end">
+        <button onclick="closeModal('modal-work-order')" class="px-4 py-2 bg-ios-blue text-white font-semibold rounded-xl text-xs hover:bg-ios-blueHover transition-all">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SCRIPTS — loaded in dependency order
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <script src="./js/frameLoader.js"></script>
+  <script src="./js/heroAnimation.js"></script>
+  <script src="./js/dashboardLoader.js"></script>
+
+  <script>
+    /* ==========================================================================
+       ORCHESTRATOR  — wires FrameLoader + HeroAnimation + DashboardLoader
+       together and boots the experience.
+       ========================================================================== */
+
+    (async function initHero() {
+      // ── Elements ──────────────────────────────────────────────────────────
+      const scrollContainer = document.getElementById('hero-scroll-container');
+      const heroSection     = document.getElementById('hero-section');
+      const canvas          = document.getElementById('hero-canvas');
+      const loaderEl        = document.getElementById('hero-loader');
+      const progressBar     = document.getElementById('hero-progress-bar');
+      const dashWrapper     = document.getElementById('dashboard-wrapper');
+      const scrollCTA       = document.getElementById('scroll-cta');
+
+      // ── Set scroll-container height from config ───────────────────────────
+      // Use mobile height if small viewport
+      const isMobile = window.innerWidth <= 768;
+      scrollContainer.style.height = isMobile
+        ? '380vh'
+        : `${HERO_CONFIG.SCROLL_HEIGHT_VH}vh`;
+
+      // ── Initialise FrameLoader ────────────────────────────────────────────
+      const loader = new FrameLoader(FRAME_LOADER_CONFIG);
+
+      // Show loading progress in the loader text
+      loader.onProgress = (loaded, total) => {
+        const loaderText = loaderEl.querySelector('.loader-text');
+        if (loaderText) {
+          const pct = Math.round((loaded / total) * 100);
+          loaderText.textContent = `Loading city map… ${pct}%`;
+        }
+      };
+
+      // ── Initialise DashboardLoader ────────────────────────────────────────
+      const dashLoader = new DashboardLoader({
+        wrapper:     dashWrapper,
+        heroSection: heroSection,
+        onReady: () => {
+          // Reveal header nav once dashboard is visible
+          const headerNav = document.getElementById('header-nav');
+          const mobileNav = document.getElementById('mobile-nav');
+          if (headerNav) headerNav.style.opacity = '1';
+          if (mobileNav) mobileNav.classList.remove('hidden');
+
+          // Init dashboard JS
+          loadSample(1);
+          updateBadgeCounts();
+          triggerToast('CivicRoute AI ready. AI routing models active.', 'success');
+        }
+      });
+
+      // ── Initialise HeroAnimation ──────────────────────────────────────────
+      const hero = new HeroAnimation({
+        container:  scrollContainer,
+        canvas:     canvas,
+        loader:     loader,
+        onProgress: (progress) => {
+          // Update progress bar width
+          const pct = Math.round(progress * 100);
+          progressBar.style.width = `${pct}%`;
+          progressBar.setAttribute('aria-valuenow', pct);
+
+          // Fade scroll CTA as user starts scrolling
+          if (progress > 0.05) {
+            scrollCTA.style.opacity = Math.max(0, 1 - progress * 6).toString();
+          }
+        },
+        onComplete: () => {
+          heroSection.classList.add('hero-complete');
+          dashLoader.reveal();
+        }
+      });
+
+      // ── Start loading frames ──────────────────────────────────────────────
+      loader.start(); // non-blocking; returns promise
+
+      // ── Wait for initial buffer, then reveal hero ─────────────────────────
+      await loader.bufferReady;
+
+      // Hide loader
+      loaderEl.classList.add('hidden');
+
+      // Start animation engine
+      hero.start();
+
+    })();
+
+
+    /* ==========================================================================
+       DASHBOARD JAVASCRIPT  (identical to original — zero redesign)
+       ========================================================================== */
+
+    let currentIntakeType = 'citizen';
+
+    const SAMPLES = {
+      1: {
+        type: 'citizen',
+        text: "Citizen Complaint from Ward 12: Massive potholes along MG Road near Central Market causing severe waterlogging after rains. Furthermore, drinking tap water supplied to Ward 12 households is coming out contaminated with sewage odor, and all 4 streetlights on Main Street have been out for 3 days."
+      },
+      2: {
+        type: 'collector',
+        text: "DISTRICT COLLECTOR ORDER #DC/2026/890: Urgent monsoon mitigation. Clear all heavy drainage blockages near General Hospital entrance within 24 hours. Simultaneously, repair the fallen electricity transformer near Ward 4 Community Center immediately."
+      },
+      3: {
+        type: 'citizen',
+        text: "Public Health & Sanitation Emergency: Uncollected municipal solid garbage overflowing near the Primary Health Center in Ward 8 for 5 days causing severe fly breeding. Also, a broken main sewage pipe is leaking onto the public footpath."
+      }
+    };
+
+    let queueData = [
+      { id:"WO-8921-A", parentId:"CR-8921", dept:"Public Works Dept (PWD)",    action:"Inspect road sub-base on MG Road & fill critical potholes", location:"Ward 12, MG Road Zone",  sla:"48 Hours",           urgency:"High",     status:"Auto-Routed",  officer:"AEE (Roads)" },
+      { id:"WO-8921-B", parentId:"CR-8921", dept:"Water Supply & Sanitation",  action:"Flushing pipeline and sample testing water quality in Ward 12", location:"Ward 12, Main Pipeline", sla:"24 Hours",           urgency:"Critical", status:"Action Pending",officer:"Executive Engineer (Water)" },
+      { id:"WO-8921-C", parentId:"CR-8921", dept:"Electricity Board",          action:"Replace burnt LED streetlight drivers & check line continuity", location:"Ward 12, Main St",       sla:"72 Hours",           urgency:"Medium",   status:"Auto-Routed",  officer:"Junior Engineer (Power)" },
+      { id:"WO-8890-A", parentId:"DC-8890", dept:"Public Health & Safety",     action:"Clear hospital entrance drainage blockage before monsoon",      location:"Ward 2, Govt Hospital",  sla:"18 Hours remaining", urgency:"Critical", status:"SLA Warning",  officer:"Sanitation Inspector" },
+      { id:"WO-8720-A", parentId:"CR-8720", dept:"Revenue & Land Admin",       action:"Verify encroachment boundary along canal embankment",           location:"Ward 5, Sector B",       sla:"Resolved",           urgency:"Low",      status:"Resolved",     officer:"Tahsildar / Revenue Inspector" }
+    ];
+
+    function switchTab(tabId) {
+      ['simulator','queue','analytics'].forEach(id => {
+        document.getElementById(`view-${id}`).classList.add('hidden');
+        document.getElementById(`tab-btn-${id}`).classList.remove('active');
+        const mob = document.getElementById(`mobile-btn-${id}`);
+        if (mob) mob.className = 'py-2 px-3 text-xs font-medium text-ios-subtext';
+      });
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-btn-${tabId}`).classList.add('active');
+      const mobBtn = document.getElementById(`mobile-btn-${tabId}`);
+      if (mobBtn) mobBtn.className = 'py-2 px-3 text-xs font-medium text-ios-blue border-b-2 border-ios-blue';
+      if (tabId === 'queue') renderQueueTable();
+    }
+
+    function setIntakeType(type) {
+      currentIntakeType = type;
+      const citizenBtn  = document.getElementById('intake-type-citizen');
+      const collectorBtn= document.getElementById('intake-type-collector');
+      const indicator   = document.getElementById('intake-indicator-badge');
+      if (type === 'citizen') {
+        citizenBtn.className  = 'px-3 py-1.5 text-xs font-medium rounded-lg transition-all bg-white text-ios-blue shadow-sm';
+        collectorBtn.className= 'px-3 py-1.5 text-xs font-medium rounded-lg transition-all text-ios-subtext hover:text-ios-text';
+        indicator.textContent = 'Mode: Citizen Grievance Portal';
+        indicator.className   = 'px-2.5 py-1 bg-blue-50 text-ios-blue rounded-lg font-medium border border-blue-100';
+      } else {
+        collectorBtn.className= 'px-3 py-1.5 text-xs font-medium rounded-lg transition-all bg-white text-ios-blue shadow-sm';
+        citizenBtn.className  = 'px-3 py-1.5 text-xs font-medium rounded-lg transition-all text-ios-subtext hover:text-ios-text';
+        indicator.textContent = 'Mode: District Collector Official Order Parser';
+        indicator.className   = 'px-2.5 py-1 bg-purple-50 text-ios-purple rounded-lg font-medium border border-purple-100';
+      }
+    }
+
+    function loadSample(n) {
+      const s = SAMPLES[n];
+      if (s) {
+        setIntakeType(s.type);
+        document.getElementById('input-text').value = s.text;
+      }
+    }
+
+    function clearInput() {
+      document.getElementById('input-text').value = '';
+      document.getElementById('analysis-results').classList.add('hidden');
+    }
+
+    function analyzeDocument() {
+      const text = document.getElementById('input-text').value.trim();
+      if (!text) { triggerToast('Please type or select a sample document first.','warning'); return; }
+
+      document.getElementById('analysis-results').classList.add('hidden');
+      const procCard = document.getElementById('ai-processing-card');
+      procCard.classList.remove('hidden');
+
+      const [s1,s2,s3,s4] = ['step-1','step-2','step-3','step-4'].map(id => document.getElementById(id));
+      [s1,s2,s3,s4].forEach(el => el.className = 'px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-xs font-medium transition-all');
+
+      setTimeout(() => { s1.className = 'px-3 py-1 bg-blue-100 text-ios-blue font-bold rounded-full text-xs transition-all'; }, 200);
+      setTimeout(() => { s2.className = 'px-3 py-1 bg-blue-100 text-ios-blue font-bold rounded-full text-xs transition-all'; }, 500);
+      setTimeout(() => { s3.className = 'px-3 py-1 bg-indigo-100 text-ios-indigo font-bold rounded-full text-xs transition-all'; }, 800);
+      setTimeout(() => { s4.className = 'px-3 py-1 bg-emerald-100 text-ios-mint font-bold rounded-full text-xs transition-all'; }, 1100);
+
+      setTimeout(() => {
+        procCard.classList.add('hidden');
+        generateSplitOutput(text);
+        document.getElementById('analysis-results').classList.remove('hidden');
+        triggerToast('AI Analysis Complete: Document auto-split successfully!', 'success');
+        document.getElementById('analysis-results').scrollIntoView({ behavior:'smooth', block:'start' });
+      }, 1300);
+    }
+
+    function generateSplitOutput(text) {
+      const isCollector = currentIntakeType === 'collector';
+      const randomID    = Math.floor(1000 + Math.random() * 9000);
+      const parentDocId = isCollector ? `DC-2026-${randomID}` : `CR-2026-${randomID}`;
+
+      const docTypeEl   = document.getElementById('res-doc-type');
+      docTypeEl.textContent = isCollector ? "Collector Order" : "Citizen Grievance";
+      docTypeEl.className   = isCollector
+        ? "px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-100 text-ios-purple"
+        : "px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-ios-blue";
+
+      document.getElementById('res-doc-id').textContent    = `Parent Doc Ref: #${parentDocId}`;
+      document.getElementById('res-doc-title').textContent = isCollector
+        ? "Official Administrative Multi-Directive Dispatch"
+        : "Multi-Issue Public Grievance Auto-Split";
+
+      let items = [];
+      const t = text.toLowerCase();
+
+      if (t.includes('potholes') || t.includes('waterlogging') || t.includes('hospital') || t.includes('drainage')) {
+        items.push({ letter:'A', dept:'Public Works Dept (PWD)',            action:'Inspect road surface and clear drainage channels causing obstruction.', urgency:'Critical', sla:'24 Hours', location:'Ward 12, Main Arterial Road',    officer:'Assistant Executive Engineer (PWD)',  tagBg:'bg-blue-50 text-ios-blue border-blue-100' });
+        items.push({ letter:'B', dept:'Water Supply & Sanitation Board',   action:'Address water contamination report / pipe integrity check.',            urgency:'High',     sla:'48 Hours', location:'Ward 12, Residential Sector',       officer:'Nodal Sanitary Engineer',            tagBg:'bg-emerald-50 text-ios-mint border-emerald-100' });
+        if (t.includes('streetlight') || t.includes('transformer')) {
+          items.push({ letter:'C', dept:'Electricity Board (EB)',           action:'Immediate restoration of power infrastructure & light fixtures.',        urgency: isCollector ? 'Critical':'Medium', sla: isCollector ? '12 Hours':'72 Hours', location:'Ward 12, Zone 4', officer:'Superintending Engineer (Power)', tagBg:'bg-amber-50 text-ios-amber border-amber-100' });
+        }
+      } else if (t.includes('garbage') || t.includes('sewage')) {
+        items.push({ letter:'A', dept:'Public Health & Sanitation',        action:'Deploy municipal clean-up squad for overflowing waste removal.',         urgency:'High',     sla:'12 Hours', location:'Ward 8, PHC Sector',                officer:'Chief Health Officer',               tagBg:'bg-emerald-50 text-ios-mint border-emerald-100' });
+        items.push({ letter:'B', dept:'Water Supply & Sewerage Board',    action:'Repair leaking main sewage pipe to eliminate health hazard.',            urgency:'Critical', sla:'24 Hours', location:'Ward 8, Public Footpath',           officer:'Executive Engineer (Drainage)',      tagBg:'bg-blue-50 text-ios-blue border-blue-100' });
+      } else {
+        items.push({ letter:'A', dept:'Public Works Dept (PWD)',            action:'Investigate structural / infrastructure concern detailed in complaint.', urgency:'Medium',   sla:'48 Hours', location:'Central District Zone',              officer:'Division Officer',                   tagBg:'bg-blue-50 text-ios-blue border-blue-100' });
+        items.push({ letter:'B', dept:'Revenue & Land Admin',              action:'Verify jurisdiction & site inspection regarding grievance claim.',       urgency:'Low',      sla:'96 Hours', location:'District Headquarters',             officer:'Revenue Inspector',                  tagBg:'bg-purple-50 text-ios-purple border-purple-100' });
+      }
+
+      const urgencyBadge = document.getElementById('res-urgency-badge');
+      urgencyBadge.innerHTML = items.some(i => i.urgency === 'Critical')
+        ? `<span class="w-2.5 h-2.5 rounded-full bg-ios-red"></span><span class="text-sm font-bold text-ios-text">Critical Priority</span>`
+        : `<span class="w-2.5 h-2.5 rounded-full bg-ios-amber"></span><span class="text-sm font-bold text-ios-text">High Priority</span>`;
+
+      document.getElementById('res-sla-date').textContent   = items[0].sla + ' Target SLA';
+      document.getElementById('res-location').textContent   = items[0].location;
+      document.getElementById('res-split-count').textContent= `${items.length} Sub-Work Orders Generated`;
+
+      const container = document.getElementById('split-cards-container');
+      container.innerHTML = '';
+      items.forEach(item => {
+        const ticketID = `WO-${randomID}-${item.letter}`;
+        if (!queueData.some(q => q.id === ticketID)) {
+          queueData.unshift({ id:ticketID, parentId:parentDocId, dept:item.dept, action:item.action, location:item.location, sla:item.sla, urgency:item.urgency, status:"Auto-Routed", officer:item.officer });
+        }
+        container.insertAdjacentHTML('beforeend', `
+          <div class="bg-ios-card rounded-2xl border border-ios-border p-5 shadow-ios transition-all hover:border-ios-blue/40">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-ios-border">
+              <div class="flex items-center space-x-3">
+                <span class="w-8 h-8 rounded-xl bg-slate-100 text-ios-blue font-bold flex items-center justify-center text-xs border border-slate-200">${item.letter}</span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-ios-text">${item.dept}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${item.tagBg} border">Work Order #${ticketID}</span>
+                  </div>
+                  <p class="text-[11px] text-ios-subtext">Assigned Level: ${item.officer}</p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-1 bg-amber-50 text-ios-amber border border-amber-100 text-xs font-medium rounded-lg"><i class="fa-regular fa-clock me-1"></i> SLA: ${item.sla}</span>
+                <span class="px-2.5 py-1 bg-emerald-50 text-ios-mint border border-emerald-100 text-xs font-medium rounded-lg"><i class="fa-solid fa-route me-1"></i> Auto-Routed</span>
+              </div>
+            </div>
+            <div class="mt-3">
+              <label class="text-[10px] font-bold text-ios-subtext uppercase tracking-wider block mb-1">Extracted Required Action Item:</label>
+              <p class="text-xs text-ios-text bg-slate-50 p-3 rounded-xl border border-ios-border font-medium">"${item.action}"</p>
+            </div>
+            <div class="mt-3 flex items-center justify-between text-xs text-ios-subtext">
+              <span class="flex items-center gap-1"><i class="fa-solid fa-location-dot text-ios-blue"></i> ${item.location}</span>
+              <button onclick="openWorkOrderModal('${ticketID}')" class="text-ios-blue font-semibold hover:underline flex items-center gap-1">View &amp; Edit Route <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+            </div>
+          </div>
+        `);
+      });
+      updateBadgeCounts();
+    }
+
+    function renderQueueTable() {
+      const tbody       = document.getElementById('queue-table-body');
+      const deptFilter  = document.getElementById('queue-filter-dept').value;
+      const statusFilter= document.getElementById('queue-filter-status').value;
+      const filtered    = queueData.filter(i =>
+        (deptFilter === 'ALL' || i.dept === deptFilter) &&
+        (statusFilter === 'ALL' || i.status === statusFilter)
+      );
+      tbody.innerHTML = '';
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-ios-subtext">No routed work orders match the current filters.</td></tr>`;
+        document.getElementById('queue-count-summary').textContent = 'Showing 0 items';
+        return;
+      }
+      filtered.forEach(item => {
+        let sc = 'bg-blue-50 text-ios-blue border-blue-100';
+        if (item.status === 'SLA Warning')    sc = 'bg-amber-50 text-ios-amber border-amber-100';
+        if (item.status === 'Resolved')       sc = 'bg-emerald-50 text-ios-mint border-emerald-100';
+        if (item.status === 'Action Pending') sc = 'bg-purple-50 text-ios-purple border-purple-100';
+        tbody.insertAdjacentHTML('beforeend', `
+          <tr class="hover:bg-slate-50/80 transition-all">
+            <td class="py-3.5 px-4 font-bold text-ios-blue">${item.id}<div class="text-[10px] text-ios-subtext font-normal">Ref: ${item.parentId}</div></td>
+            <td class="py-3.5 px-4 font-semibold text-ios-text">${item.dept}</td>
+            <td class="py-3.5 px-4 max-w-xs truncate text-ios-subtext">${item.action}</td>
+            <td class="py-3.5 px-4 text-ios-subtext">${item.location}</td>
+            <td class="py-3.5 px-4 font-medium text-ios-text">${item.sla}</td>
+            <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${sc}">${item.status}</span></td>
+            <td class="py-3.5 px-4 text-right"><button onclick="openWorkOrderModal('${item.id}')" class="p-1.5 bg-slate-100 hover:bg-ios-blue hover:text-white rounded-lg text-ios-subtext transition-all" title="Manage Order"><i class="fa-solid fa-sliders text-xs"></i></button></td>
+          </tr>
+        `);
+      });
+      document.getElementById('queue-count-summary').textContent = `Showing ${filtered.length} active routed items`;
+    }
+
+    function filterQueueTable() { renderQueueTable(); }
+    function resetQueueFilters() {
+      document.getElementById('queue-filter-dept').value   = 'ALL';
+      document.getElementById('queue-filter-status').value = 'ALL';
+      renderQueueTable();
+    }
+
+    let activeModalTicketId = null;
+    function openWorkOrderModal(ticketId) {
+      const order = queueData.find(q => q.id === ticketId);
+      if (!order) return;
+      activeModalTicketId = ticketId;
+      document.getElementById('modal-ticket-id').textContent  = `Work Order #${order.id}`;
+      document.getElementById('modal-dept-name').textContent  = order.dept;
+      document.getElementById('modal-action-text').textContent= `"${order.action}"`;
+      document.getElementById('modal-officer').textContent    = order.officer || "Designated Nodal Officer";
+      document.getElementById('modal-sla-time').textContent   = `${order.sla} (${order.urgency} Priority)`;
+      document.getElementById('modal-work-order').classList.remove('hidden');
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    function reassignDeptAction() {
+      const order = queueData.find(q => q.id === activeModalTicketId);
+      if (order) { order.dept = "Revenue & Land Admin"; order.officer = "District Revenue Officer"; renderQueueTable(); closeModal('modal-work-order'); triggerToast(`Re-assigned ${activeModalTicketId} to Revenue & Land Admin`,'info'); }
+    }
+    function overrideSLAAction() {
+      const order = queueData.find(q => q.id === activeModalTicketId);
+      if (order) { order.sla = "Extended 12 Hours"; renderQueueTable(); closeModal('modal-work-order'); triggerToast(`SLA clock overridden for ${activeModalTicketId}`,'warning'); }
+    }
+    function copyWorkOrderJSON() {
+      const order = queueData.find(q => q.id === activeModalTicketId);
+      if (order) {
+        const dummy = document.createElement('textarea');
+        document.body.appendChild(dummy);
+        dummy.value = JSON.stringify(order, null, 2);
+        dummy.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummy);
+        triggerToast('Task JSON payload copied to clipboard!','success');
+      }
+    }
+    function dispatchAllWorkOrders() {
+      triggerToast('All generated sub-work orders successfully dispatched to departmental portals!','success');
+      setTimeout(() => switchTab('queue'), 800);
+    }
+    function exportResultJSON() { triggerToast('Exported routing manifesto to JSON file.','info'); }
+    function updateBadgeCounts() {
+      const c = queueData.length;
+      document.getElementById('queue-badge-count').textContent  = c;
+      document.getElementById('mobile-badge-count').textContent = c;
+    }
+
+    function triggerToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast     = document.createElement('div');
+      let icon = 'fa-circle-info text-ios-blue';
+      if (type === 'success') icon = 'fa-circle-check text-ios-mint';
+      if (type === 'warning') icon = 'fa-triangle-exclamation text-ios-amber';
+      toast.className = `pointer-events-auto flex items-center space-x-3 p-3.5 px-4 rounded-xl border shadow-ios-md bg-white border-ios-border text-xs text-ios-text transition-all transform translate-y-2 opacity-0 duration-200`;
+      toast.innerHTML = `<i class="fa-solid ${icon} text-sm"></i><span class="font-medium">${message}</span>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.remove('translate-y-2','opacity-0'));
+      setTimeout(() => {
+        toast.classList.add('opacity-0','translate-y-2');
+        setTimeout(() => toast.remove(), 200);
+      }, 3000);
+    }
+  </script>
+
+</body>
+</html>
