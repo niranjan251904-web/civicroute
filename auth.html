@@ -354,15 +354,30 @@
               </button>
             </div>
 
-            <!-- Admin Portal link -->
-            <div style="margin-top:14px;padding-top:14px;border-top:1px solid #EEF0F5;text-align:center">
-              <a href="http://localhost:3001/admin-login.html"
-                style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#003366;text-decoration:none;padding:6px 14px;border:1px solid #D0D7E2;border-radius:3px;background:#F5F7FA;transition:all .15s"
-                onmouseover="this.style.background='#003366';this.style.color='#fff'"
-                onmouseout="this.style.background='#F5F7FA';this.style.color='#003366'">
-                <i class="fa-solid fa-shield-halved" style="font-size:10px"></i>
-                Government Officer? &nbsp;<strong>Admin Portal Login &rarr;</strong>
-              </a>
+            <!-- Portal links: Admin + Service -->
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid #EEF0F5">
+              <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9AA5B4;text-align:center;margin-bottom:10px">Staff &amp; Officer Portals</p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+
+                <!-- Admin Portal -->
+                <a href="http://localhost:3001/admin-login.html"
+                  style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#003366;text-decoration:none;padding:7px 14px;border:1px solid #C7D2FE;border-radius:6px;background:#EEF2FF;transition:all .15s;flex:1;min-width:140px;justify-content:center"
+                  onmouseover="this.style.background='#003366';this.style.color='#fff';this.style.borderColor='#003366'"
+                  onmouseout="this.style.background='#EEF2FF';this.style.color='#003366';this.style.borderColor='#C7D2FE'">
+                  <i class="fa-solid fa-shield-halved" style="font-size:11px"></i>
+                  <span>Admin Portal</span>
+                </a>
+
+                <!-- Service Portal -->
+                <a href="http://localhost:3002/service-login.html"
+                  style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#065f46;text-decoration:none;padding:7px 14px;border:1px solid #6ee7b7;border-radius:6px;background:#ecfdf5;transition:all .15s;flex:1;min-width:140px;justify-content:center"
+                  onmouseover="this.style.background='#065f46';this.style.color='#fff';this.style.borderColor='#065f46'"
+                  onmouseout="this.style.background='#ecfdf5';this.style.color='#065f46';this.style.borderColor='#6ee7b7'">
+                  <i class="fa-solid fa-hard-hat" style="font-size:11px"></i>
+                  <span>Service Portal</span>
+                </a>
+
+              </div>
             </div>
 
           </div>
