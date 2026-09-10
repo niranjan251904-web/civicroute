@@ -272,6 +272,147 @@
     ::-webkit-scrollbar-thumb { background: #B0BAC9; border-radius: 2px; }
     ::-webkit-scrollbar-thumb:hover { background: #8896A9; }
 
+    /* ═══════════════════════════════════════════════════════
+       MOBILE RESPONSIVE OVERRIDES
+       ═══════════════════════════════════════════════════════ */
+
+    /* Header identity bar: collapse emblem text on xs */
+    @media (max-width: 480px) {
+      .gov-header .max-w-7xl > div:first-child { gap: 8px; }
+      .gov-header h1 { font-size: 14px !important; }
+      /* shrink emblem on tiny screens */
+      .gov-header svg { width: 36px !important; height: 36px !important; }
+      .gov-header .w-12 { width: 36px; height: 36px; }
+      /* "File Complaint" button — shorter label */
+      #file-complaint-btn span { display: none; }
+    }
+
+    /* Nav bar: horizontal scroll on small screens */
+    .gov-navbar .max-w-7xl {
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .gov-navbar .max-w-7xl::-webkit-scrollbar { display: none; }
+    .segmented-btn { white-space: nowrap; flex-shrink: 0; }
+
+    /* Mobile nav bar improvements */
+    #mobile-nav { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    #mobile-nav::-webkit-scrollbar { display: none; }
+
+    /* Quick intake: stack on mobile */
+    @media (max-width: 640px) {
+      #quick-intake-input { font-size: 12px; }
+      /* Stack the input row */
+      .quick-intake-row { flex-direction: column !important; }
+      .quick-intake-row button { width: 100%; }
+    }
+
+    /* Complaints / Queue table: horizontal scroll container */
+    .table-scroll-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* Shrink table text slightly on medium screens */
+    @media (max-width: 768px) {
+      .gov-table { font-size: 11px; }
+      .gov-table th, .gov-table td { padding: 7px 8px; }
+    }
+
+    /* Mobile card view for complaints table — hide table, show cards */
+    @media (max-width: 640px) {
+      .desktop-table-wrap { display: none !important; }
+      .mobile-cards-wrap { display: block !important; }
+    }
+    @media (min-width: 641px) {
+      .mobile-cards-wrap { display: none !important; }
+    }
+
+    /* Dashboard 3-col: already stacks via Tailwind lg: prefix.
+       But add extra breathing room on mobile. */
+    @media (max-width: 1023px) {
+      .dashboard-3col-left,
+      .dashboard-3col-right {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+    }
+    @media (max-width: 640px) {
+      .dashboard-3col-left,
+      .dashboard-3col-right {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* KPI row: ensure 2-col on xs, 5-col on lg */
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr 1fr !important; gap: 0.5rem !important; }
+      .kpi-grid > *:last-child { grid-column: span 2; }
+    }
+
+    /* Section header stacking on small screens */
+    @media (max-width: 640px) {
+      .section-header-row { flex-direction: column !important; align-items: flex-start !important; gap: 0.5rem !important; }
+    }
+
+    /* Modal: full width on mobile */
+    @media (max-width: 640px) {
+      #modal-work-order > div,
+      #complaint-modal-overlay > div {
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-radius: 16px 16px 0 0 !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      #modal-work-order,
+      #complaint-modal-overlay {
+        align-items: flex-end !important;
+        padding: 0 !important;
+      }
+    }
+
+    /* Footer links: wrap nicely on mobile */
+    @media (max-width: 640px) {
+      .gov-footer .flex.items-center.gap-4 { gap: 12px; flex-wrap: wrap; justify-content: center; }
+      .gov-footer .max-w-7xl > div { flex-direction: column; text-align: center; gap: 10px; }
+    }
+
+    /* Ensure main content has appropriate padding on mobile */
+    @media (max-width: 640px) {
+      main.max-w-7xl { padding-left: 12px !important; padding-right: 12px !important; }
+    }
+
+    /* Preset sample cards grid: 1 col on mobile */
+    @media (max-width: 640px) {
+      .preset-samples-grid { grid-template-columns: 1fr !important; }
+    }
+
+    /* Filter bar: wrap on mobile */
+    @media (max-width: 640px) {
+      .filter-bar { flex-direction: column !important; }
+      .filter-bar > * { width: 100% !important; }
+    }
+
+    /* Track status search: stack on mobile */
+    @media (max-width: 480px) {
+      #track-ticket-input { font-size: 13px; }
+    }
+
+    /* Profile cards: proper padding on mobile */
+    @media (max-width: 640px) {
+      #view-profile .max-w-2xl { padding: 0; }
+    }
+
+    /* Textarea: min height on mobile */
+    @media (max-width: 640px) {
+      textarea { min-height: 100px; }
+    }
+
     /* Keep backward-compat aliases for existing HTML classes */
     .bg-ios-card   { background: #FFFFFF; }
     .bg-ios-bg     { background: #F5F7FA; }
@@ -446,7 +587,7 @@
       <div id="view-dashboard" class="space-y-6">
         
         <!-- Top KPI Row -->
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+        <div class="kpi-grid grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           <div class="bg-ios-card p-4 rounded-2xl border border-ios-border shadow-ios flex items-center space-x-3.5">
             <div class="w-10 h-10 rounded-xl bg-blue-50 text-ios-blue flex items-center justify-center shrink-0">
               <i class="fa-solid fa-inbox text-base"></i>
@@ -567,8 +708,8 @@
                 </h3>
                 <button onclick="switchTab('ai')" class="text-xs text-ios-blue font-semibold hover:underline">Full Simulator &rarr;</button>
               </div>
-              <div class="flex gap-2">
-                <input id="quick-intake-input" type="text" placeholder="Type complaint e.g. 'Broken water pipe and flooded street on 5th cross Ward 12'..." class="w-full px-3.5 py-2 text-xs rounded-xl border border-ios-border focus:ring-2 focus:ring-ios-blue/40 focus:border-ios-blue bg-slate-50/70">
+              <div class="quick-intake-row flex gap-2">
+                <input id="quick-intake-input" type="text" placeholder="Type complaint e.g. 'Broken water pipe on 5th cross Ward 12'..." class="w-full px-3.5 py-2 text-xs rounded-xl border border-ios-border focus:ring-2 focus:ring-ios-blue/40 focus:border-ios-blue bg-slate-50/70">
                 <button onclick="runQuickTriage()" class="px-4 py-2 bg-ios-blue hover:bg-ios-blueHover text-white text-xs font-semibold rounded-xl whitespace-nowrap shadow-sm">
                   Auto-Route
                 </button>
@@ -698,7 +839,8 @@
 
         <!-- Complaints Table View (Desktop) & Cards (Mobile) -->
         <div class="bg-ios-card rounded-2xl border border-ios-border shadow-ios overflow-hidden">
-          <div class="overflow-x-auto">
+          <!-- Desktop table -->
+          <div class="desktop-table-wrap overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-slate-50/80 border-b border-ios-border text-[11px] font-semibold text-ios-subtext uppercase tracking-wider">
@@ -717,8 +859,12 @@
               </tbody>
             </table>
           </div>
+          <!-- Mobile card list (hidden on desktop via CSS) -->
+          <div class="mobile-cards-wrap" id="complaints-mobile-cards">
+            <!-- Populated by renderComplaintsTable() on mobile -->
+          </div>
           <div class="p-4 bg-slate-50/50 border-t border-ios-border flex items-center justify-between text-xs text-ios-subtext">
-            <span id="complaints-count-summary">Showing 8 active complaints</span>
+            <span id="complaints-count-summary">Showing 0 active complaints</span>
             <div class="flex items-center space-x-1.5">
               <button class="px-2.5 py-1 bg-white border border-ios-border rounded-lg text-ios-subtext disabled:opacity-50" disabled>Previous</button>
               <button class="px-2.5 py-1 bg-white border border-ios-border rounded-lg text-ios-text font-bold shadow-sm">1</button>
@@ -1585,6 +1731,42 @@
         `;
         tbody.insertAdjacentHTML('beforeend', row);
       });
+
+      // ── Mobile card view (shown on screens < 640px via CSS) ──────────────
+      const mobileCards = document.getElementById('complaints-mobile-cards');
+      if (mobileCards) {
+        mobileCards.innerHTML = '';
+        if (filtered.length === 0) {
+          mobileCards.innerHTML = '<p class="p-5 text-xs text-ios-subtext italic text-center">No complaints matching filters.</p>';
+        } else {
+          filtered.forEach(item => {
+            let statusClass = 'bg-blue-50 text-ios-blue border-blue-100';
+            if (item.status === 'IN PROGRESS') statusClass = 'bg-indigo-50 text-ios-indigo border-indigo-100';
+            if (item.status === 'RESOLVED')    statusClass = 'bg-emerald-50 text-ios-mint border-emerald-100';
+            if (item.status === 'VERIFIED')    statusClass = 'bg-amber-50 text-ios-amber border-amber-100';
+            const priorityColor = item.priority === 'Critical' ? 'text-ios-red' : item.priority === 'High' ? 'text-ios-amber' : 'text-ios-text';
+            const card = `
+              <div class="p-4 border-b border-ios-border last:border-0 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-ios-blue">${item.id}</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusClass}">${item.status}</span>
+                </div>
+                <p class="text-xs font-semibold text-ios-text">${item.category}</p>
+                <p class="text-[11px] text-ios-subtext line-clamp-2">${item.action}</p>
+                <div class="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-ios-subtext">
+                  <span><i class="fa-solid fa-location-dot text-ios-blue me-1"></i>${item.location}</span>
+                  <span><i class="fa-solid fa-building me-1"></i>${item.dept}</span>
+                  <span class="${priorityColor} font-semibold">${item.priority} · ${item.sla}</span>
+                </div>
+                <button onclick="openWorkOrderModal('${item.id}')" class="w-full mt-1 py-2 bg-slate-100 hover:bg-ios-blue hover:text-white rounded-xl text-xs font-semibold text-ios-text transition-all">
+                  <i class="fa-solid fa-magnifying-glass me-1"></i> Inspect
+                </button>
+              </div>
+            `;
+            mobileCards.insertAdjacentHTML('beforeend', card);
+          });
+        }
+      }
 
       document.getElementById('complaints-count-summary').textContent = `Showing ${filtered.length} active complaints`;
       updateBadgeCounts();
