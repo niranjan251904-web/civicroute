@@ -33,22 +33,35 @@
     .main-layout{display:flex;gap:16px;align-items:flex-start}
     .queue-panel{width:340px;flex-shrink:0;border-radius:3px;overflow:hidden;border:1px solid #D0D7E2;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06)}
     .detail-panel{flex:1;min-width:0}
-    .task-scroll{overflow-y:auto;height:calc(100vh - 220px)}
+    .task-scroll{overflow-y:auto;height:calc(100vh - 220px);-webkit-overflow-scrolling:touch}
+    /* Touch-friendly tap targets */
+    .btn-saffron,.btn-outline{min-height:44px}
+    .complaint-row{min-height:56px}
+    @media(max-width:1024px){
+      .queue-panel{width:280px}
+    }
     @media(max-width:768px){
       .main-layout{flex-direction:column;gap:12px}
       .queue-panel{width:100%}
-      .task-scroll{height:320px}
+      .task-scroll{height:280px}
       .detail-panel{width:100%}
       .gov-header .header-inner{flex-wrap:wrap;gap:8px;padding:10px 14px}
       .gov-header .header-right{flex-wrap:wrap;gap:6px}
       .system-live-badge{display:none!important}
       .main-wrap{padding:12px}
-      h2.page-title{font-size:13px}
+      h2.page-title{font-size:14px}
+      /* Action buttons full-width on mobile */
+      #task-detail .card-actions{flex-direction:column!important;gap:8px!important}
+      #task-detail .card-actions button{width:100%!important;justify-content:center!important}
     }
     @media(max-width:480px){
       .gov-header .header-brand h1{font-size:14px}
       .gov-header .portal-badge{display:none}
       .queue-panel{border-radius:0}
+      .main-wrap{padding:8px;padding-bottom:24px}
+      .task-scroll{height:240px}
+      /* Larger touch targets for task rows */
+      .complaint-row{padding:12px 14px}
     }
   </style>
 </head>

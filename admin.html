@@ -49,32 +49,54 @@
     .admin-layout{display:flex;gap:16px;align-items:flex-start}
     .queue-col{width:300px;flex-shrink:0;border-radius:3px;overflow:hidden;border:1px solid #D0D7E2;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06)}
     .detail-col{flex:1;min-width:0}
-    .complaint-scroll{overflow-y:auto;max-height:calc(100vh - 380px)}
+    .complaint-scroll{overflow-y:auto;max-height:calc(100vh - 380px);-webkit-overflow-scrolling:touch}
     .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
     .admin-main{max-width:1400px;margin:0 auto;padding:20px;flex:1}
+    /* Tab nav always scrollable */
+    .tab-nav{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .tab-nav::-webkit-scrollbar{display:none}
+    .tab-btn{white-space:nowrap;flex-shrink:0;min-height:44px}
+    /* Filter buttons: touch-friendly */
+    .filter-btn{min-height:34px;min-width:60px;padding:4px 12px}
+    /* Buttons: min tap target */
+    .btn-navy,.btn-saffron,.btn-outline{min-height:40px}
+    @media(max-width:1024px){
+      .queue-col{width:260px}
+    }
     @media(max-width:900px){
-      .admin-layout{flex-direction:column}
+      .admin-layout{flex-direction:column;gap:12px}
       .queue-col{width:100%}
-      .complaint-scroll{max-height:280px}
+      .complaint-scroll{max-height:260px}
       .detail-col{width:100%}
     }
     @media(max-width:768px){
       .stat-box{flex:0 0 50%;border-right:none;border-bottom:1px solid #D0D7E2;padding:10px 14px}
       .stat-box:nth-child(odd){border-right:1px solid #D0D7E2}
-      .stat-box p:last-child{font-size:18px!important}
-      .stats-bar-inner .refresh-wrap{width:100%;padding:10px 14px;border-top:1px solid #D0D7E2}
+      .stat-box:last-child{border-bottom:none}
+      .stat-box p:last-child{font-size:20px!important}
+      .stats-bar-inner .refresh-wrap{width:100%;padding:10px 14px;border-top:1px solid #D0D7E2;justify-content:center}
       .admin-main{padding:12px}
       .system-live-badge{display:none!important}
-      .tab-nav{padding:0 12px!important}
+      .tab-nav{padding:0!important}
       td,th{padding:7px 8px;font-size:11px}
+      /* Detail action buttons stack on mobile */
+      #complaint-detail .detail-actions{flex-direction:column!important}
+      #complaint-detail .detail-actions button{width:100%!important;justify-content:center!important}
+    }
+    @media(max-width:600px){
+      /* Stats: 3-across on small phones */
+      .stat-box{flex:0 0 33.33%;border-right:1px solid #D0D7E2;border-bottom:1px solid #D0D7E2;padding:8px 6px;text-align:center}
+      .stat-box:nth-child(odd){border-right:1px solid #D0D7E2}
+      .stat-box:nth-child(3n){border-right:none}
+      .stats-bar-inner .refresh-wrap{justify-content:center}
     }
     @media(max-width:480px){
-      .stat-box{flex:0 0 33.33%;padding:8px 10px}
-      .stat-box:nth-child(odd){border-right:none}
-      .stat-box:nth-child(3n+1){border-right:1px solid #D0D7E2}
       .gov-header .portal-badge,.gov-header .restricted-badge{display:none}
       .gov-header h1{font-size:14px!important}
       .header-subtitle{display:none}
+      .admin-main{padding:8px}
+      /* Queue: compact list items */
+      .complaint-row{padding:8px 10px}
     }
   </style>
 </head>
@@ -343,7 +365,7 @@ window.showDetail = function(i) {
     +'</div>'
     +(c.description?'<div style="margin-bottom:16px"><p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#4A5568;margin-bottom:6px">Description</p><div style="background:#F5F7FA;border:1px solid #D0D7E2;border-radius:3px;padding:12px;font-size:12px;line-height:1.7;color:#1A1A2E">'+c.description+'</div></div>':'')
     +(c.aiSummary?'<div style="margin-bottom:16px;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:3px;padding:12px"><p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#4338CA;margin-bottom:6px"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:4px"></i>AI Summary</p><p style="font-size:12px;line-height:1.7;color:#1A1A2E">'+c.aiSummary+'</p></div>':'')
-    +'<div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:14px;border-top:1px solid #EEF0F5">'
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:14px;border-top:1px solid #EEF0F5" class="detail-actions">'
     +'<button class="btn-navy" onclick="setStatus(\''+c.id+'\',\'in-progress\')"><i class="fa-solid fa-play" style="font-size:10px"></i> Move To Progress</button>'
     +'</div></div>';
 };

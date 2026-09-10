@@ -506,7 +506,7 @@
       <!-- Right: Status + User session -->
       <div class="flex items-center gap-2 shrink-0">
 
-        <!-- Live status -->
+        <!-- Live status (md+) -->
         <div class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 border border-white/20 rounded text-[11px] text-white font-medium">
           <span class="w-2 h-2 rounded-full bg-green-400 pulse-badge"></span>
           <span>System Operational</span>
@@ -515,10 +515,11 @@
         <!-- File Complaint -->
         <button onclick="switchTab('citizen-report')"
           class="btn-saffron flex items-center gap-1.5 text-xs whitespace-nowrap">
-          <i class="fa-solid fa-plus text-[10px]"></i> File Complaint
+          <i class="fa-solid fa-plus text-[10px]"></i>
+          <span class="hidden sm:inline">File Complaint</span>
         </button>
 
-        <!-- User chip -->
+        <!-- User chip (lg+) -->
         <div id="user-chip"
           class="hidden lg:flex items-center gap-2 px-2.5 py-1.5 bg-white/10 border border-white/20 rounded whitespace-nowrap cursor-pointer hover:bg-white/20 transition-all"
           onclick="switchTab('profile')" title="My Profile">
@@ -529,10 +530,16 @@
           <span id="user-display-name" class="text-[11px] font-semibold text-white">User</span>
         </div>
 
-        <!-- Sign Out -->
+        <!-- Sign Out (lg+) -->
         <button id="btn-logout" onclick="doLogout()"
           class="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 border border-white/20 rounded text-white text-[11px] font-medium hover:bg-red-600/60 transition-all whitespace-nowrap">
           <i class="fa-solid fa-right-from-bracket text-[10px]"></i> Sign Out
+        </button>
+
+        <!-- Hamburger (< lg) -->
+        <button id="mobile-menu-btn" onclick="toggleMobileMenu()"
+          class="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all" aria-label="Menu">
+          <i class="fa-solid fa-bars text-sm" id="hamburger-icon"></i>
         </button>
       </div>
     </div>
@@ -557,17 +564,53 @@
     </div>
 
     <!-- Mobile nav strip -->
-    <div id="mobile-nav" class="md:hidden flex overflow-x-auto bg-white border-t-2 border-gov-navy p-0 gap-0" style="border-color:#003366">
-      <button onclick="switchTab('dashboard')" id="mob-btn-dashboard"
-        class="nav-tab-btn active px-4 py-2.5 text-xs font-bold whitespace-nowrap border-b-2" style="border-color:#FF6600;color:#003366">Overview</button>
-      <button onclick="switchTab('complaints')" id="mob-btn-complaints"
-        class="nav-tab-btn px-4 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 border-transparent">Complaints (<span id="mob-badge-count">0</span>)</button>
-      <button onclick="switchTab('citizen-track')" id="mob-btn-citizen-track"
-        class="nav-tab-btn px-4 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 border-transparent">Track</button>
-      <button onclick="switchTab('profile')" id="mob-btn-profile"
-        class="nav-tab-btn px-4 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 border-transparent">Profile</button>
+    <div id="mobile-nav" class="md:hidden flex overflow-x-auto bg-white border-t-2 p-0 gap-0 scrollbar-hide" style="border-color:#003366;-webkit-overflow-scrolling:touch;scrollbar-width:none">
+      <button onclick="switchTab('dashboard');closeMobileMenu()" id="mob-btn-dashboard"
+        class="nav-tab-btn active flex-shrink-0 px-5 py-3 text-xs font-bold whitespace-nowrap border-b-2" style="border-color:#FF6600;color:#003366">Overview</button>
+      <button onclick="switchTab('complaints');closeMobileMenu()" id="mob-btn-complaints"
+        class="nav-tab-btn flex-shrink-0 px-5 py-3 text-xs font-medium whitespace-nowrap border-b-2 border-transparent">Complaints (<span id="mob-badge-count">0</span>)</button>
+      <button onclick="switchTab('citizen-report');closeMobileMenu()" id="mob-btn-citizen-report"
+        class="nav-tab-btn flex-shrink-0 px-5 py-3 text-xs font-medium whitespace-nowrap border-b-2 border-transparent">File</button>
+      <button onclick="switchTab('citizen-track');closeMobileMenu()" id="mob-btn-citizen-track"
+        class="nav-tab-btn flex-shrink-0 px-5 py-3 text-xs font-medium whitespace-nowrap border-b-2 border-transparent">Track</button>
+      <button onclick="switchTab('profile');closeMobileMenu()" id="mob-btn-profile"
+        class="nav-tab-btn flex-shrink-0 px-5 py-3 text-xs font-medium whitespace-nowrap border-b-2 border-transparent">Profile</button>
     </div>
 
+    <!-- Mobile full-screen drawer (< lg) -->
+    <div id="mobile-menu-drawer" class="lg:hidden hidden fixed inset-0 z-50" style="background:rgba(0,0,0,0.5)" onclick="closeMobileMenu()">
+      <div class="absolute top-0 right-0 h-full w-72 max-w-[85vw] flex flex-col" style="background:#003366;border-left:3px solid #FF6600" onclick="event.stopPropagation()">
+        <!-- Drawer header -->
+        <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color:rgba(255,255,255,0.1)">
+          <div class="flex items-center gap-2">
+            <div id="drawer-avatar" class="w-9 h-9 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm font-bold overflow-hidden">
+              <i class="fa-solid fa-user text-xs"></i>
+            </div>
+            <div>
+              <p id="drawer-name" class="text-sm font-bold text-white">User</p>
+              <p class="text-[10px]" style="color:rgba(179,210,255,0.7)">Citizen</p>
+            </div>
+          </div>
+          <button onclick="closeMobileMenu()" class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(255,255,255,0.1)">
+            <i class="fa-solid fa-xmark text-white text-sm"></i>
+          </button>
+        </div>
+        <!-- Drawer nav items -->
+        <nav class="flex-1 overflow-y-auto py-3">
+          <button onclick="switchTab('dashboard');closeMobileMenu()" class="w-full flex items-center gap-3 px-5 py-4 text-sm font-medium text-left transition-all" style="color:rgba(255,255,255,0.85)" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background=''"><i class="fa-solid fa-chart-pie w-4 text-orange-400"></i> Overview</button>
+          <button onclick="switchTab('complaints');closeMobileMenu()" class="w-full flex items-center gap-3 px-5 py-4 text-sm font-medium text-left transition-all" style="color:rgba(255,255,255,0.85)" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background=''"><i class="fa-solid fa-list-check w-4 text-orange-400"></i> Complaints</button>
+          <button onclick="switchTab('citizen-report');closeMobileMenu()" class="w-full flex items-center gap-3 px-5 py-4 text-sm font-medium text-left transition-all" style="color:rgba(255,255,255,0.85)" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background=''"><i class="fa-solid fa-file-pen w-4 text-orange-400"></i> File Complaint</button>
+          <button onclick="switchTab('citizen-track');closeMobileMenu()" class="w-full flex items-center gap-3 px-5 py-4 text-sm font-medium text-left transition-all" style="color:rgba(255,255,255,0.85)" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background=''"><i class="fa-solid fa-magnifying-glass w-4 text-orange-400"></i> Track Status</button>
+          <button onclick="switchTab('profile');closeMobileMenu()" class="w-full flex items-center gap-3 px-5 py-4 text-sm font-medium text-left transition-all" style="color:rgba(255,255,255,0.85)" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background=''"><i class="fa-solid fa-circle-user w-4 text-orange-400"></i> My Profile</button>
+        </nav>
+        <!-- Drawer footer -->
+        <div class="px-5 py-4 border-t" style="border-color:rgba(255,255,255,0.1)">
+          <button id="drawer-logout" onclick="doLogout()" class="w-full py-3 rounded-lg text-sm font-semibold flex items-center justify-center gap-2" style="background:rgba(204,0,0,0.25);color:#fff;border:1px solid rgba(204,0,0,0.4)">
+            <i class="fa-solid fa-right-from-bracket text-xs"></i> Sign Out
+          </button>
+        </div>
+      </div>
+    </div>
 
   </header>
 
@@ -648,7 +691,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           <!-- Left Column: Civic Categories & Live Status (3 cols) -->
-          <div class="lg:col-span-3 space-y-4">
+          <div class="lg:col-span-3 order-2 lg:order-1 space-y-4 dashboard-3col-left">
             <div class="bg-ios-card p-5 rounded-2xl border border-ios-border shadow-ios">
               <h3 class="text-xs font-bold text-ios-text uppercase tracking-wider mb-3 flex items-center justify-between">
                 <span>Civic Categories</span>
@@ -698,7 +741,7 @@
           </div>
 
           <!-- Center Column: Live Intelligence Stream & Dispatch Overview (6 cols) -->
-          <div class="lg:col-span-6 space-y-6">
+          <div class="lg:col-span-6 order-1 lg:order-2 space-y-6">
             
             <!-- Quick Document Intake Card -->
             <div class="bg-ios-card p-5 rounded-2xl border border-ios-border shadow-ios">
@@ -733,7 +776,7 @@
           </div>
 
           <!-- Right Column: Priority SLA & Live Field Activity (3 cols) -->
-          <div class="lg:col-span-3 space-y-4">
+          <div class="lg:col-span-3 order-3 space-y-4 dashboard-3col-right">
             
             <!-- SLA Breach Countdown Watch -->
             <div class="bg-ios-card p-5 rounded-2xl border border-ios-border shadow-ios">
@@ -1557,6 +1600,37 @@
     /* ═══════════════════════════════════════════════════════════════════════
        1. GLOBAL DATA MODELS & STATE
        ═══════════════════════════════════════════════════════════════════════ */
+    /* ── Mobile menu helpers ── */
+    function toggleMobileMenu() {
+      const drawer = document.getElementById('mobile-menu-drawer');
+      const icon   = document.getElementById('hamburger-icon');
+      const isOpen = !drawer.classList.contains('hidden');
+      if (isOpen) {
+        closeMobileMenu();
+      } else {
+        drawer.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        icon.classList.replace('fa-bars','fa-xmark');
+      }
+    }
+    function closeMobileMenu() {
+      const drawer = document.getElementById('mobile-menu-drawer');
+      const icon   = document.getElementById('hamburger-icon');
+      drawer.classList.add('hidden');
+      document.body.style.overflow = '';
+      icon?.classList.replace('fa-xmark','fa-bars');
+    }
+    /* Sync drawer user info when auth resolves */
+    function syncDrawerUser(name, photoUrl) {
+      const dn = document.getElementById('drawer-name');
+      const da = document.getElementById('drawer-avatar');
+      if (dn) dn.textContent = name || 'User';
+      if (da && photoUrl) da.innerHTML = `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      else if (da && name) da.textContent = name.slice(0,2).toUpperCase();
+    }
+    window.toggleMobileMenu = toggleMobileMenu;
+    window.closeMobileMenu  = closeMobileMenu;
+
     let currentIntakeType = 'citizen';
     let activeModalTicketId = null;
 
